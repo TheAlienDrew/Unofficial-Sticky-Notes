@@ -1,0 +1,9 @@
+/* Hiding buttons/links that have no use in the web app
+ *
+ *
+ */
+
+/* The App launcher button, Settings button, Help button, My profile link, and My account link */
+#O365_HeaderLeftRegion, #Control_10_container, #Control_11_container, a[href="https://account.microsoft.com/profile/"], a[href="https://account.microsoft.com/"], a[href="https://www.microsoft.com/en-US/servicesagreement/"], a[href="https://privacy.microsoft.com/en-US/privacystatement"] {
+    display: none !important;
+}
