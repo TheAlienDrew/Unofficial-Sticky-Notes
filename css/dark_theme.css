@@ -145,10 +145,10 @@ input::placeholder{
 .n-noteCanvas.n-toolbar button:hover{
 	background:rgba(255,255,255,.07) !important
 }
-.n-noteCanvas.n-longDate,.n-noteCanvas.n-shortDate,.n-noteCanvas.n-toolbarTextArea{
+.public-DraftEditorPlaceholder-inner, .n-noteCanvas.n-longDate,.n-noteCanvas.n-shortDate,.n-noteCanvas.n-toolbarTextArea,.n-noteTimestamp.n-shortDate{
 	color:rgba(255,255,255,.8) !important
 }
-.n-noteCanvas.icon:not(.checkMark):not(.colorFilter):not(.delete):not(.networkError):not(.newNote):not(.offline):not(.refresh):not(.search):not(.syncFailed):not(.x) circle,.n-noteCanvas.icon:not(.checkMark):not(.colorFilter):not(.delete):not(.networkError):not(.newNote):not(.offline):not(.refresh):not(.search):not(.syncFailed):not(.x) path{
+.n-ellipsisContainerWrapper,.n-noteCanvas.icon:not(.checkMark):not(.colorFilter):not(.delete):not(.networkError):not(.newNote):not(.offline):not(.refresh):not(.search):not(.syncFailed):not(.x) circle,.n-noteCanvas.icon:not(.checkMark):not(.colorFilter):not(.delete):not(.networkError):not(.newNote):not(.offline):not(.refresh):not(.search):not(.syncFailed):not(.x) path{
 	fill:rgba(255,255,255,.8) !important
 }
 
