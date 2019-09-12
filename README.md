@@ -7,7 +7,7 @@ You can download the app from 4 locations so far:
 * [Google Play](https://play.google.com/store/apps/details?id=aliendrew.ms.stickynotes)
 * Amazon Apps (App Submission Under Review)
 * [Aptoide](https://aliendrew-stickynotes.en.aptoide.com/?store_name=aliendrew) 
-* GetJar (Under review)
+* [GetJar](https://www.getjar.mobi/mobile/971813/Microsoft-Sticky-Notes-Unofficial) (Under review)
 
 --- **App Description** ---
 
