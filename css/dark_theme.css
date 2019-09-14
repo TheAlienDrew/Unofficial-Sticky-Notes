@@ -7,6 +7,16 @@ html{
 	background-color:#000 !important;
 	color:#fff
 }
+.n-loaderTitle {
+    filter: invert(100%)
+}
+.n-loader {
+    border-color: #7719aa #262626 #262626
+}
+.n-loadingAnimationContainer {
+    background: black;
+    border-color: rgba(255, 255, 255, .1);
+}
 
 /* Microsoft Login screen
  *
@@ -20,7 +30,6 @@ html{
 	background-color:#000
 }
 .identityBanner{
-	background-image:initial;
 	background-color:#000
 }
 .backButton{
@@ -41,7 +50,6 @@ input::placeholder{
 }
 @media (max-width:600px),(max-height:366px){
 	.footer.default{
-		background-image:initial !important;
 		background-color:#000 !important
 	}
 	.footer.default div.footerNode a,.footer.default div.footerNode span{
@@ -177,7 +185,6 @@ input::placeholder{
 }
 /* Background of bar where shortened notes go */
 .n-noteList{
-	background-image:initial;
 	background:#000
 }
 .n-headerBar {
@@ -228,7 +235,6 @@ input::placeholder{
 	color:#cdcac2
 }
 .n-warningCancel{
-	background-image:initial;
 	background-color:#1e2021;
 	color:#d9d6d0
 }
