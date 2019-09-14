@@ -15,12 +15,17 @@ import android.widget.CompoundButton;
 import android.view.View;
 import android.content.Intent;
 import android.content.SharedPreferences;
+// splash screen stuff
+import android.os.Handler;
+import android.graphics.Color;
 
 public class MainActivity extends AppCompatActivity {
 
     // for the toggle button
     private static final String PREFS_NAME = "prefs";
     private static final String PREF_DARK_THEME = "dark_theme";
+
+    private WebView splashview;
 
     private NoSuggestionsWebView webview;
 
@@ -33,17 +38,27 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        webview = (NoSuggestionsWebView) findViewById(R.id.webView);
-
         final ToggleButton toggle = (ToggleButton) findViewById(R.id.toggleTheme);
         toggle.setChecked(useDarkTheme);
         toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 toggleTheme(isChecked);
-                webview.reload();
             }
         });
-        toggle.setVisibility(View.GONE);
+
+        webview = (NoSuggestionsWebView) findViewById(R.id.webView);
+
+        // splash loading
+        splashview = (WebView) findViewById(R.id.splashView);
+        splashview.setVerticalScrollBarEnabled(false);
+        splashview.setHorizontalScrollBarEnabled(false);
+        splashview.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
+        if (useDarkTheme) {
+            splashview.setBackgroundColor(Color.BLACK);
+            splashview.loadUrl("file:///android_asset/html/loading-dark.html");
+            webview.setBackgroundColor(Color.BLACK);
+        } else
+            splashview.loadUrl("file:///android_asset/html/loading-light.html");
 
         webview.setWebViewClient(new WebViewClient() {
 
@@ -83,7 +98,9 @@ public class MainActivity extends AppCompatActivity {
                 else
                     injectScriptFile(webview, "js/light_theme.js");
                 webview.loadUrl("javascript:setTimeout(test(), 0)");
+
                 toggle.setVisibility(View.VISIBLE);
+                webview.setVisibility(View.VISIBLE);
             }
 
             private void injectScriptFile(WebView view, String scriptFile) {
@@ -124,7 +141,6 @@ public class MainActivity extends AppCompatActivity {
         webview.clearFormData();
 
         webview.loadUrl("https://www.onenote.com/stickynotes");
-
 
     }
 

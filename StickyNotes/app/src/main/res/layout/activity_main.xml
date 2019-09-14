@@ -7,10 +7,16 @@
     android:background="@color/ic_launcher_background"
     tools:context=".MainActivity">
 
+    <WebView
+        android:id="@+id/splashView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <aliendrew.ms.stickynotes.NoSuggestionsWebView
         android:id="@+id/webView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:visibility="gone"
         android:windowSoftInputMode="stateVisible" />
 
     <ToggleButton
@@ -21,9 +27,9 @@
         android:textOff="Toggle Dark"
         android:textOn="Toggle Light"
         android:visibility="gone"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5" />
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
