@@ -1,3 +1,26 @@
+/* Disables weird highlights and outlines
+ *
+ *
+ */
+
+* {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);	
+}
+*:focus {
+	outline: none
+}
+
+/* Fixes weird scrolling that shouldn't happen
+ *
+ *
+ */
+
+html {
+    position:fixed;
+    height:100%;
+    width:100%
+}
+
 /* Hiding buttons/links that have no use in the web app
  *
  *

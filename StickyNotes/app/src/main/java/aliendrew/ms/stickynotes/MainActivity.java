@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.webkit.WebSettings.LayoutAlgorithm;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import java.io.InputStream;
@@ -16,7 +17,6 @@ import android.view.View;
 import android.content.Intent;
 import android.content.SharedPreferences;
 // splash screen stuff
-import android.os.Handler;
 import android.graphics.Color;
 
 public class MainActivity extends AppCompatActivity {
@@ -93,10 +93,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(webview, url);
+
                 if (useDarkTheme)
                     injectScriptFile(webview, "js/dark_theme.js");
                 else
                     injectScriptFile(webview, "js/light_theme.js");
+
                 webview.loadUrl("javascript:setTimeout(test(), 0)");
 
                 toggle.setVisibility(View.VISIBLE);
