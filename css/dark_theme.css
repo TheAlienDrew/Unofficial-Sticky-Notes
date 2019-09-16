@@ -26,6 +26,9 @@ html, body {
 .text-title{
 	color:#d1cec7 !important
 }
+.lightbox-cover {
+    background-color: #181818;
+}
 .inner{
 	background-color:#000
 }
@@ -53,21 +56,21 @@ input::placeholder{
 		background-color:#000 !important
 	}
 	.footer.default div.footerNode a,.footer.default div.footerNode span{
-		color:#000 !important
+		color:#fff !important
 	}
 	.debug-details-banner{
 		background-color:#1c1e1f !important;
 		box-shadow:none !important
 	}
-	.n-headerBar, .n-noteList-Container, .searchEmpty {
-	    border-color: transparent !important;
-        -webkit-box-shadow: none !important;
-        box-shadow: none !important
-    }
-
 }
 .debug-details-banner{
 	color:#dad8d2
+}
+.dialog-outer .dialog-middle .dialog-inner {
+	background-color:black;
+}
+.moreOptions, .help-button, img.tile-img, #fidoDialogTitle img, #gitHubDialogTitle img {
+	filter: invert(100%) !important;
 }
 
 /* main note taking area
@@ -147,7 +150,10 @@ input::placeholder{
 	caret-color:#fff !important
 }
 .n-Blue .n-editor-link,.n-Gray .n-editor-link,.n-Green .n-editor-link,.n-Pink .n-editor-link,.n-Purple .n-editor-link,.n-Yellow .n-editor-link{
-	color:#6532ff!important
+	color:#D7D1FF!important
+}
+.n-textBox.n-textBox-notEmpty::-webkit-scrollbar-thumb:vertical{
+    background-color:rgba(255, 255, 255, .2);
 }
 /* other buttons/text */
 .n-noteCanvas.n-toolbar button:hover{
@@ -156,8 +162,30 @@ input::placeholder{
 .public-DraftEditorPlaceholder-inner,.n-longDate,.n-shortDate,.n-toolbarTextArea{
 	color:rgba(255,255,255,.8) !important
 }
-.n-ellipsisContainerWrapper,.icon:not(.checkMark):not(.colorFilter):not(.delete):not(.networkError):not(.newNote):not(.offline):not(.refresh):not(.search):not(.syncFailed):not(.x) circle,.icon:not(.checkMark):not(.colorFilter):not(.delete):not(.networkError):not(.newNote):not(.offline):not(.refresh):not(.search):not(.syncFailed):not(.x) path{
+.n-ellipsisContainerWrapper,.icon:not(.checkMark):not(.colorFilter):not(.delete):not(.networkError):not(.newNote):not(.offline):not(.refresh):not(.search):not(.syncFailed):not(.x):not(.noSearchResults) circle,.icon:not(.checkMark):not(.colorFilter):not(.delete):not(.networkError):not(.newNote):not(.offline):not(.refresh):not(.search):not(.syncFailed):not(.x):not(.noSearchResults) path{
 	fill:rgba(255,255,255,.8) !important
+}
+.n-colorPicker-checkMark {
+	filter: invert(100%)
+}
+@media (max-width: 750px) {
+    .n-headerBar, .n-noteList-Container, .searchEmpty {
+	    border-color: transparent !important;
+        -webkit-box-shadow: none !important;
+        box-shadow: none !important
+    }
+	.n-newNoteButtonContainer {
+    	-webkit-box-shadow: 0px 2px 6px 0px rgba(255, 255, 255, .24)!important;
+    	box-shadow: 0px 2px 6px 0px rgba(255, 255, 255, .24)!important
+	}
+	.n-noteContainer {
+		-webkit-box-shadow: 0px 0px 4px rgba(255, 255, 255, .5)!important;
+        box-shadow: 0px 0px 4px rgba(255, 255, 255, .5)!important
+	}
+	.n-notePreview .n-note {
+		-webkit-box-shadow: 0 2px 2px rgba(255, 255, 255, .3)!important;
+        box-shadow: 0 2px 2px rgba(255, 255, 255, .3)!important
+	}
 }
 
 /* Side bar areas
@@ -183,9 +211,16 @@ input::placeholder{
 	background-color:#1b1c1d !important;
 	color:#d1cec7 !important
 }
+.o365cs-base .NfzyWk8Nqs12TVbDcAXOs {
+    -webkit-box-shadow: 0 1px 2px rgba(255,255,255,.1);
+    box-shadow: 0 1px 2px rgba(255,255,255,.1);
+}
+.icon.search {
+	filter: invert(100%)
+}
 /* Background of bar where shortened notes go */
 .n-noteList{
-	background:#000
+	background:black
 }
 .n-headerBar {
 	border-bottom: 1px solid rgba(255, 255, 255, .1)
@@ -198,8 +233,12 @@ input::placeholder{
     filter: invert(100%) hue-rotate(180deg)
 }
 /* Right side panel fixes */
-.o365cs-base .o365sx-activeButton,.o365cs-base:hover .o365sx-activeButton:hover{
-	background-color:#1c1e1f !important
+.o365cs-base .o365sx-activeButton, .o365cs-base .o365sx-activeButton:hover, .o365cs-base .o365sx-activeButton:focus {
+    color: #DADBDC!important;
+	background-color:#363636 !important
+}
+.o365cs-base .o365sx-neutral-secondary-font, .o365cs-base .o365sx-neutral-secondary-hover-font:hover {
+    color: #B7B9BB!important
 }
 .o365cs-base .o365sx-button:focus{
 	outline-color:#333 !important
@@ -219,22 +258,56 @@ input::placeholder{
 	border-bottom-color:#3f3a34 !important;
 	border-left-color:#3f3a34 !important
 }
+#helpPaneFull {
+    filter: invert(100%) hue-rotate(180deg)
+}
+#O365fpcontainerid {
+    box-shadow: rgba(255, 255, 255, 0.133) 0px 1.6px 3.6px 0px, rgba(255, 255, 255, 0.11) 0px 0.3px 0.9px 0px!important
+}
+#flexPaneCloseButton:hover {
+    background-color:#4a4a4a!important
+}
+/* MS Apps Menu */
+.o365cs-base ._1x-KBB6RdSTnX8e2ouF9PC {
+    background-color: #181a1b!important
+}
+.o365cs-base ._2d3HJn7fCnXe5MwUmFMiia {
+    color: #B7B9BB!important
+}
+.o365cs-base ._1xoJtGb41qZ16zYvd1Ol5Y:hover[href], .o365cs-base ._3MDYbWlBfFFIDM7MdbX96h {
+	border-color: #E7E5E4 !important
+}
+._34w_FZIo5f3Lk_Ey2bjscY.PlyfocMODrPzWmo-Vl1tc, .ms-svg-Icon, ._1xoJtGb41qZ16zYvd1Ol5Y, .o365sx-neutral-staticAccent-font {
+    filter: invert(100%) hue-rotate(180deg)
+}
+.o365cs-base .ms-Icon--MSNLogo:before {
+	filter: invert(100%)!important
+}
+.o365cs-base ._2pVaxiaByyDsICJ4UhPyib::-webkit-scrollbar-thumb:vertical{
+    filter: invert(100%)
+}
 
 /* Changing other menus/option prompts
  *
  *
  */
 
-.n-deleteButtonContainer,.n-ellipsisColorPickerWrapper,.n-warningDialog{
+.content-45, .n-deleteButtonContainer,.n-ellipsisColorPickerWrapper,.n-warningDialog{
 	background:#000
 }
-.n-ellipsisMenuContainer{
-	box-shadow:0 3px 10px rgba(255,255,255,.2)
+.n-warningDialogShadow,.ms-Overlay.root-44 {
+    background-color: rgba(255, 255, 255, 0.2)
 }
-.n-warningText{
+.n-ellipsisMenuContainer{
+	box-shadow:0 3px 10px rgba(255,255,255,.2)!important
+}
+#Dialog0-title, .content-45, .n-warningText{
 	color:#cdcac2
 }
 .n-warningCancel{
 	background-color:#1e2021;
 	color:#d9d6d0
+}
+.ms-Button-icon.icon-62 {
+	filter: invert(100%) hue-rotate(180deg)
 }

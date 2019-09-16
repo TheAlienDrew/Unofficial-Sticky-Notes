@@ -1,12 +1,16 @@
 package aliendrew.ms.stickynotes;
 
+// basics
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.webkit.WebSettings.LayoutAlgorithm;
+// webview stuff
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.net.Uri;
+// no internet connection detection
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+// used to inject JS files
 import java.io.InputStream;
 import java.io.IOException;
 import android.util.Base64;
@@ -18,17 +22,21 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 // splash screen stuff
 import android.graphics.Color;
+// webview flicker fix
+import android.webkit.JavascriptInterface;
+import android.annotation.SuppressLint;
+import android.os.Handler;
 
 public class MainActivity extends AppCompatActivity {
 
     // for the toggle button
     private static final String PREFS_NAME = "prefs";
     private static final String PREF_DARK_THEME = "dark_theme";
-
-    private WebView splashview;
+    private ToggleButton toggle;
 
     private NoSuggestionsWebView webview;
 
+    @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Use the chosen theme
@@ -38,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final ToggleButton toggle = (ToggleButton) findViewById(R.id.toggleTheme);
+        toggle = (ToggleButton) findViewById(R.id.toggleTheme);
         toggle.setChecked(useDarkTheme);
         toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -49,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
         webview = (NoSuggestionsWebView) findViewById(R.id.webView);
 
         // splash loading
-        splashview = (WebView) findViewById(R.id.splashView);
+        WebView splashview = (WebView) findViewById(R.id.splashView);
         splashview.setVerticalScrollBarEnabled(false);
         splashview.setHorizontalScrollBarEnabled(false);
         splashview.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
@@ -62,11 +70,13 @@ public class MainActivity extends AppCompatActivity {
 
         webview.setWebViewClient(new WebViewClient() {
 
-            // INTERNET DETECTION START
+            // INTERNET DETECTION block
             public void onReceivedError(WebView webView, int errorCode, String description, String failingUrl) {
                 try {
                     webView.stopLoading();
                 } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
                 }
 
                 if (webView.canGoBack()) {
@@ -87,9 +97,35 @@ public class MainActivity extends AppCompatActivity {
                 alertDialog.show();
                 super.onReceivedError(webView, errorCode, description, failingUrl);
             }
-            // INTERNET DETECTION END
 
-            // THEME MOD START
+            // LINKS OPEN AS EXTERNAL block
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                if (// open in default browser exception
+                        url.startsWith("https://www.onenote.com/common1pauth/exchangecode?error=msa_signup")) {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    startActivity(intent);
+                    return true;
+                } else if (// open in Webview
+                        url.startsWith("https://www.onenote.com/stickynotes")
+                        || url.startsWith("https://www.onenote.com/common1pauth/signin?redirectUrl=https%3A%2F%2Fwww.onenote.com%2Fstickynotes")
+                        || url.startsWith("https://login.windows.net/common/oauth2/authorize")
+                        || url.startsWith("https://login.microsoftonline.com/common/oauth2/authorize")
+                        || url.startsWith("https://www.onenote.com/common1pauth/exchangecode")
+                        || url.startsWith("https://login.live.com/oauth20_authorize.srf")
+                        || url.startsWith("https://login.live.com/ppsecure/post.srf")
+                        || url.startsWith("https://www.onenote.com/common1pauth/msaimplicitauthcallback?redirectUrl=https%3a%2f%2fwww.onenote.com%2fstickynotes")
+                        || url.startsWith("https://www.onenote.com/common1pauth/signout?redirectUrl=https%3A%2F%2Fwww.onenote.com%2Fcommon1pauth%2Fsignin%3FredirectUrl%3Dhttps%253A%252F%252Fwww.onenote.com%252Fstickynotes")
+                ){
+                    return false;
+                }
+                // open rest of URLS in default browser
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(intent);
+                return true;
+            }
+
+            // THEME MOD block
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(webview, url);
@@ -99,10 +135,7 @@ public class MainActivity extends AppCompatActivity {
                 else
                     injectScriptFile(webview, "js/light_theme.js");
 
-                webview.loadUrl("javascript:setTimeout(test(), 0)");
-
-                toggle.setVisibility(View.VISIBLE);
-                webview.setVisibility(View.VISIBLE);
+                webview.loadUrl("javascript: window.CallToAnAndroidFunction.setVisible()");
             }
 
             private void injectScriptFile(WebView view, String scriptFile) {
@@ -128,7 +161,6 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-            // THEME MOD END
         });
 
         // enables site to work
@@ -141,7 +173,9 @@ public class MainActivity extends AppCompatActivity {
         // fixes keyboard suggestions/auto correct on some keyboards
         webview.getSettings().setSaveFormData(false);
         webview.clearFormData();
+        webview.clearFormData();
 
+        webview.addJavascriptInterface(new myJavaScriptInterface(), "CallToAnAndroidFunction");
         webview.loadUrl("https://www.onenote.com/stickynotes");
 
     }
@@ -155,5 +189,23 @@ public class MainActivity extends AppCompatActivity {
         finish();
 
         startActivity(intent);
+    }
+
+    public class myJavaScriptInterface {
+        @JavascriptInterface
+        public void setVisible(){
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            toggle.setVisibility(View.VISIBLE);
+                            webview.setVisibility(View.VISIBLE);
+                        }
+                    }, 500);
+                }
+            });
+        }
     }
 }
