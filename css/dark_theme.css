@@ -3,7 +3,7 @@
  *
  */
 
-html{
+html, body {
 	background-color:#000 !important;
 	color:#fff
 }
