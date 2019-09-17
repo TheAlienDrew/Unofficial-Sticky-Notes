@@ -1,6 +1,3 @@
 <resources>
     <string name="app_name">Unofficial Sticky Notes</string>
-    <string name="togglebutton">ToggleButton</string>
-    <string name="toggle_dark">Toggle Dark</string>
-    <string name="toggle_light">Toggle Light</string>
 </resources>
