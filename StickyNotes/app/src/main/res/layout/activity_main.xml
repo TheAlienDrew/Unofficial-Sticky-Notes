@@ -8,14 +8,22 @@
     tools:context=".MainActivity">
 
     <WebView
-        android:id="@+id/splashView"
+        android:id="@+id/loadLight"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+    <WebView
+        android:id="@+id/loadDark"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
 
     <aliendrew.ms.stickynotes.NoSuggestionsWebView
         android:id="@+id/webView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:visibility="gone"
         android:windowSoftInputMode="stateVisible" />
 
 </RelativeLayout>

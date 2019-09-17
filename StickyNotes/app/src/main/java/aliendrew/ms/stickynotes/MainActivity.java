@@ -37,7 +37,8 @@ public class MainActivity extends AppCompatActivity {
     private boolean useDarkTheme = false;
 
     private NoSuggestionsWebView webView;
-    private WebView splashView;
+    private WebView loadDark;
+    private WebView loadLight;
 
     @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
     @Override
@@ -48,20 +49,28 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         useDarkTheme = preferences.getBoolean(PREF_DARK_THEME, false);
 
+        // dark load screen
+        loadDark = findViewById(R.id.loadDark);
+        loadDark.setVerticalScrollBarEnabled(false);
+        loadDark.setHorizontalScrollBarEnabled(false);
+        loadDark.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
+        loadDark.setBackgroundColor(Color.BLACK);
+        loadDark.loadUrl("file:///android_asset/html/loading-dark.html");
+        // light load screen
+        loadLight = findViewById(R.id.loadLight);
+        loadLight.setVerticalScrollBarEnabled(false);
+        loadLight.setHorizontalScrollBarEnabled(false);
+        loadLight.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
+        loadLight.setBackgroundColor(Color.WHITE);
+        loadLight.loadUrl("file:///android_asset/html/loading-light.html");
+
         webView = findViewById(R.id.webView);
 
-        // splash loading
-        splashView = findViewById(R.id.splashView);
-        splashView.setVerticalScrollBarEnabled(false);
-        splashView.setHorizontalScrollBarEnabled(false);
-        splashView.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
         if (useDarkTheme) {
-            splashView.setBackgroundColor(Color.BLACK);
-            splashView.loadUrl("file:///android_asset/html/loading-dark.html");
+            loadDark.setVisibility(View.VISIBLE);
             webView.setBackgroundColor(Color.BLACK);
         } else {
-            splashView.setBackgroundColor(Color.WHITE);
-            splashView.loadUrl("file:///android_asset/html/loading-light.html");
+            loadLight.setVisibility(View.VISIBLE);
             webView.setBackgroundColor(Color.WHITE);
         }
 
@@ -95,8 +104,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-                alertDialog.show();
                 webView.setVisibility(View.GONE);
+                alertDialog.show();
                 super.onReceivedError(view, errorCode, description, failingUrl);
             }
 
@@ -196,20 +205,22 @@ public class MainActivity extends AppCompatActivity {
 
     // toggles theme in shared preferences
     private void toggleTheme(boolean darkTheme) {
+        if (darkTheme) {
+            loadDark.setVisibility(View.VISIBLE);
+            loadLight.setVisibility(View.GONE);
+            webView.setBackgroundColor(Color.BLACK);
+        } else {
+            loadDark.setVisibility(View.GONE);
+            loadLight.setVisibility(View.VISIBLE);
+            webView.setBackgroundColor(Color.WHITE);
+        }
+
         SharedPreferences.Editor editor = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit();
         editor.putBoolean(PREF_DARK_THEME, darkTheme);
         editor.apply();
 
-        if (darkTheme) {
-            splashView.setBackgroundColor(Color.BLACK);
-            splashView.loadUrl("file:///android_asset/html/loading-dark.html");
-            webView.setBackgroundColor(Color.BLACK);
-        } else {
-            splashView.setBackgroundColor(Color.WHITE);
-            splashView.loadUrl("file:///android_asset/html/loading-light.html");
-            webView.setBackgroundColor(Color.WHITE);
-        }
         useDarkTheme = darkTheme;
+        webView.setVisibility(View.GONE);
         webView.reload();
     }
 
