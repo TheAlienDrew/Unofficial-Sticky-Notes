@@ -14,9 +14,13 @@ If you'd like to download an older version of the app, all the way to the first 
 
 DISCLAIMER: I, and this app, are in no way affiliated with Microsoft.
 
-Ever find yourself needing to use the Sticky Notes app that you use on your Windows 10? And maybe you use the syncing feature to take a look at those same notes on the web. However, there was quite some time where one could just use the OneNote app to see their own Sticky Notes, but for reasons, they decided to move that to the Microsoft Launcher. For that very reason, I decided to create this web based app for those that don't want to use the Microsoft Launcher when they only need access to their notes.
+Ever find yourself needing to use the Sticky Notes app that you use on your Windows 10? And maybe you use the syncing feature to take a look at those same notes on the web. There was, and still is the ability to use Sticky Notes in Microsoft's OneNote app, but for certain devices, such as tablets, that option is not available. The only other way to use Sticky Notes from that point is to use the Microsoft Launcher, but not everyone uses that. For that very reason, I decided to create this web based app for those that can't use Microsoft OneNote, and don't want to use Microsoft Launcher.
 
 Perks so far:
-* Includes a toggle between a light and dark theme
+* Dark theme to compliment the default light theme
 * No ADs (for obvious reasons)
 * Open-source! https://github.com/TheAlienDrew/Unofficial-Sticky-Notes
+
+To activate the dark theme, press the volume down key. To go back to the light theme, press the volume up key. Or if you can't use the volume keys, you can press the back button to toggle through them.
+
+Theme changes are located at https://userstyles.org/styles/170362/microsoft-sticky-notes-dark-theme
