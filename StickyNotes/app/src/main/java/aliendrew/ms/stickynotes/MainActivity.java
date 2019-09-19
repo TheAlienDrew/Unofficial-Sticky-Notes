@@ -2,13 +2,11 @@ package aliendrew.ms.stickynotes;
 
 // basics
 import androidx.appcompat.app.AppCompatActivity;
-import android.os.Build;
 import android.os.Bundle;
 import android.graphics.Color;
 // used to inject JS files
 import java.io.InputStream;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import android.util.Base64;
 // no internet connection detection
 import android.app.AlertDialog;
@@ -19,6 +17,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.widget.Toast;
 // webView stuff
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -27,7 +26,6 @@ import android.net.Uri;
 import android.webkit.JavascriptInterface;
 import android.annotation.SuppressLint;
 import android.os.Handler;
-import android.widget.ImageView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -192,13 +190,17 @@ public class MainActivity extends AppCompatActivity {
         webView.loadUrl("https://www.onenote.com/stickynotes");
     }
 
-    // volume button control to change theme/reload page
+    // button controls to change theme/reload page
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+        // volume buttons can toggle to a, or reload on a current, theme
         if ((keyCode == KeyEvent.KEYCODE_VOLUME_UP)){
             toggleTheme(false);
         } else if ((keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)){
             toggleTheme(true);
+        } else if ((keyCode == KeyEvent.KEYCODE_BACK)) {
+            // back button reloads the page into the other theme
+            toggleTheme(!useDarkTheme);
         }
         return true;
     }
