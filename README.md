@@ -8,6 +8,8 @@ You can download the app from 3+ locations so far:
 
 And any Google Play mirrors, such as, but not limited to, APKPure.
 
+If you'd like to download an older version of the app, all the way to the first version (I don't know why you would), they are located [here](https://aliendrew-stickynotes.en.aptoide.com/versions).
+
 --- **App Description** ---
 
 DISCLAIMER: I, and this app, are in no way affiliated with Microsoft.
