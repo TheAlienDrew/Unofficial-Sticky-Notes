@@ -8,19 +8,20 @@
     tools:context=".MainActivity">
 
     <ImageView
+        android:id="@+id/splashImage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="center"
         android:src="@drawable/ic_splash"
         android:contentDescription="@string/loading" />
 
-    <aliendrew.ms.stickynotes.NoSuggestionsWebView
+    <WebView
         android:id="@+id/loadingLight"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone" />
 
-    <aliendrew.ms.stickynotes.NoSuggestionsWebView
+    <WebView
         android:id="@+id/loadingDark"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

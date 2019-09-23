@@ -2,7 +2,6 @@ package aliendrew.ms.stickynotes;
 
 // basics
 import androidx.appcompat.app.AppCompatActivity;
-import android.os.Build;
 import android.os.Bundle;
 import android.graphics.Color;
 // used to inject JS files
@@ -19,7 +18,6 @@ import android.view.View;
 import android.content.SharedPreferences;
 // webView stuff
 import android.webkit.WebChromeClient;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.content.Intent;
@@ -35,9 +33,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String PREF_DARK_THEME = "dark_theme";
     private boolean useDarkTheme = false;
 
+    private WebView loadDark;
+    private WebView loadLight;
     private NoSuggestionsWebView webStickies;
-    private NoSuggestionsWebView loadDark;
-    private NoSuggestionsWebView loadLight;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +75,8 @@ public class MainActivity extends AppCompatActivity {
 
             // INTERNET DETECTION block
             public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+                super.onReceivedError(view, errorCode, description, failingUrl);
+
                 if (view.canGoBack()) {
                     view.goBack();
                 }
@@ -105,7 +105,6 @@ public class MainActivity extends AppCompatActivity {
 
                 webStickies.setVisibility(View.GONE);
                 alertDialog.show();
-                super.onReceivedError(view, errorCode, description, failingUrl);
             }
 
             // LINKS OPEN AS EXTERNAL block
@@ -139,14 +138,14 @@ public class MainActivity extends AppCompatActivity {
             // THEME MOD block
             @Override
             public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+
                 if (useDarkTheme)
                     injectScriptFile(webStickies, "js/dark_theme.js");
                 else
                     injectScriptFile(webStickies, "js/light_theme.js");
 
                 webStickies.loadUrl("javascript: window.CallToAnAndroidFunction.setVisible()");
-
-                super.onPageFinished(view, url);
             }
 
             private void injectScriptFile(WebView view, String scriptFile) {
@@ -174,38 +173,21 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
+        // enables site to work
+        webStickies.getSettings().setJavaScriptEnabled(true);
+        webStickies.addJavascriptInterface(new myJavaScriptInterface(), "CallToAnAndroidFunction");
+        webStickies.getSettings().setDomStorageEnabled(true);
         // fixes keyboard suggestions/auto correct on some keyboards
         webStickies.getSettings().setSaveFormData(false);
         webStickies.clearFormData();
-        // enables site to work
-        webStickies.getSettings().setJavaScriptEnabled(true);
-        webStickies.getSettings().setAllowContentAccess(true);
-        webStickies.getSettings().setAllowFileAccess(true);
-        webStickies.getSettings().setDatabaseEnabled(true);
-        webStickies.getSettings().setDomStorageEnabled(true);
-        webStickies.clearCache(false);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            webStickies.getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-        }
         // visual fixes
-        webStickies.getSettings().setLoadWithOverviewMode(true);
-        webStickies.getSettings().setUseWideViewPort(true);
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
-            webStickies.setVerticalScrollBarEnabled(false);
-            webStickies.setHorizontalScrollBarEnabled(false);
-        } else {
-            webStickies.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
-        }
         webStickies.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
+        //webStickies.getSettings().setUseWideViewPort(true);
+        //webStickies.getSettings().setLoadWithOverviewMode(true);
+        webStickies.setVerticalScrollBarEnabled(false);
+        webStickies.setHorizontalScrollBarEnabled(false);
 
-        webStickies.addJavascriptInterface(new myJavaScriptInterface(), "CallToAnAndroidFunction");
         webStickies.loadUrl("https://www.onenote.com/stickynotes");
-    }
-
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        webStickies.saveState(outState);
     }
 
     // button controls to change theme/reload page

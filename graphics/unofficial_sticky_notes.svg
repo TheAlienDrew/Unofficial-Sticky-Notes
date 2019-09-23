@@ -43,9 +43,9 @@
      inkscape:window-height="877"
      id="namedview6388"
      showgrid="true"
-     inkscape:zoom="2"
-     inkscape:cx="109.85176"
-     inkscape:cy="132.47845"
+     inkscape:zoom="2.2817288"
+     inkscape:cx="23.116673"
+     inkscape:cy="129.24619"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
@@ -65,17 +65,17 @@
      inkscape:label="Unofficial" />
   <text
      xml:space="preserve"
-     style="font-style:normal;font-weight:normal;font-size:55.40586853px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:#faffff;stroke-width:2;image-rendering:auto;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
-     x="-135.82826"
-     y="200.80505"
+     style="font-style:normal;font-weight:normal;font-size:54.72571182px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:#ffffff;stroke-width:2.63393116;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;image-rendering:auto"
+     x="-134.17485"
+     y="200.56255"
      id="text7212"
-     transform="matrix(0.71048974,-0.70373993,0.71048974,0.70373993,0,0)"
+     transform="matrix(0.71050434,-0.70372547,0.71050434,0.70372547,0,0)"
      inkscape:export-filename="C:\Users\Andrew\Documents\GitHub\Unofficial-Sticky-Notes\graphics\icons\32.png"
      inkscape:export-xdpi="14.222528"
      inkscape:export-ydpi="14.222528"><tspan
        sodipodi:role="line"
        id="tspan7210"
-       x="-135.82826"
-       y="200.80505"
-       style="font-style:normal;font-variant:normal;font-weight:900;font-stretch:normal;font-size:55.40586853px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Heavy';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:2;stroke:#faffff;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none">Unofficial</tspan></text>
+       x="-134.17485"
+       y="200.56255"
+       style="font-style:normal;font-variant:normal;font-weight:900;font-stretch:normal;font-size:54.72571182px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Heavy';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke:#ffffff;stroke-width:2.63393116;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1">Unofficial</tspan></text>
 </svg>
