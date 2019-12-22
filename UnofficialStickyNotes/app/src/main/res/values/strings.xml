@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">Unofficial Sticky Notes</string>
-    <string name="loading">Loading</string>
+    <string name="loading">Loading Unofficial Sticky Notes...</string>
 </resources>

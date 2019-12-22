@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
 
     <!-- Base application theme. -->
@@ -6,10 +7,10 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:navigationBarColor">@color/ic_launcher_background</item>
+
+        <!-- this is an edit -->
+        <item name="android:windowBackground">@color/ic_launcher_background</item>
     </style>
-<!--
-    <style name="SplashTheme" parent="AppTheme">
-        <item name="android:windowBackground">@drawable/ic_splash</item>
-    </style>
--->
+
 </resources>

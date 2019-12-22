@@ -20,3 +20,8 @@ html {
     height:100%;
     width:100%
 }
+
+/* Disables unuseful button that either shouldn't be on the app, or don't work with it */
+#O365_HeaderLeftRegion, #HelpIcon_container {
+	display: none;
+}

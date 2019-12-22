@@ -33,8 +33,6 @@ public class MainActivity extends AppCompatActivity {
     private static final String PREF_DARK_THEME = "dark_theme";
     private boolean useDarkTheme = false;
 
-    private WebView loadDark;
-    private WebView loadLight;
     private NoSuggestionsWebView webStickies;
 
     @Override
@@ -45,28 +43,11 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         useDarkTheme = preferences.getBoolean(PREF_DARK_THEME, false);
 
-        // dark load screen
-        loadDark = findViewById(R.id.loadingDark);
-        loadDark.setVerticalScrollBarEnabled(false);
-        loadDark.setHorizontalScrollBarEnabled(false);
-        loadDark.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
-        loadDark.setBackgroundColor(Color.BLACK);
-        loadDark.loadUrl("file:///android_asset/html/loading-dark.html");
-        // light load screen
-        loadLight = findViewById(R.id.loadingLight);
-        loadLight.setVerticalScrollBarEnabled(false);
-        loadLight.setHorizontalScrollBarEnabled(false);
-        loadLight.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
-        loadLight.setBackgroundColor(Color.WHITE);
-        loadLight.loadUrl("file:///android_asset/html/loading-light.html");
-
         webStickies = findViewById(R.id.webView);
 
         if (useDarkTheme) {
-            loadDark.setVisibility(View.VISIBLE);
             webStickies.setBackgroundColor(Color.BLACK);
         } else {
-            loadLight.setVisibility(View.VISIBLE);
             webStickies.setBackgroundColor(Color.WHITE);
         }
 
@@ -208,12 +189,8 @@ public class MainActivity extends AppCompatActivity {
     // toggles theme in shared preferences
     private void toggleTheme(boolean darkTheme) {
         if (darkTheme) {
-            loadDark.setVisibility(View.VISIBLE);
-            loadLight.setVisibility(View.GONE);
             webStickies.setBackgroundColor(Color.BLACK);
         } else {
-            loadDark.setVisibility(View.GONE);
-            loadLight.setVisibility(View.VISIBLE);
             webStickies.setBackgroundColor(Color.WHITE);
         }
 
