@@ -4,6 +4,7 @@ package aliendrew.ms.stickynotes;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.graphics.Color;
+import android.widget.Toast;
 // used to inject JS files
 import java.io.InputStream;
 import java.io.IOException;
@@ -27,6 +28,9 @@ import android.webkit.JavascriptInterface;
 import android.os.Handler;
 
 public class MainActivity extends AppCompatActivity {
+
+    // general app controls
+    boolean singleBack = false;
 
     // Use the chosen theme
     private static final String PREFS_NAME = "prefs";
@@ -55,23 +59,19 @@ public class MainActivity extends AppCompatActivity {
         webStickies.setWebViewClient(new WebViewClient() {
 
             // INTERNET DETECTION block
-            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+            public void onReceivedError(final WebView view, int errorCode, String description, String failingUrl) {
                 super.onReceivedError(view, errorCode, description, failingUrl);
 
                 if (view.canGoBack()) {
                     view.goBack();
                 }
 
-                AlertDialog alertDialog;
-                if (useDarkTheme)
-                    alertDialog = new AlertDialog.Builder(MainActivity.this, AlertDialog.THEME_DEVICE_DEFAULT_DARK).create();
-                else
-                    alertDialog = new AlertDialog.Builder(MainActivity.this, AlertDialog.THEME_DEVICE_DEFAULT_LIGHT).create();
+                AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this, AlertDialog.THEME_DEVICE_DEFAULT_DARK).create();
                 alertDialog.setTitle("Error");
                 alertDialog.setMessage("Check your internet connection and try again.");
                 alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, "Try Again", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        webStickies.reload();
+                        view.reload();
                     }
                 });
                 alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
@@ -80,11 +80,9 @@ public class MainActivity extends AppCompatActivity {
                         finish();
                     }
                 });
-                alertDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-                alertDialog.getWindow().clearFlags(LayoutParams.FLAG_DIM_BEHIND);
                 alertDialog.getWindow().getAttributes().verticalMargin = 0.3F;
 
-                webStickies.setVisibility(View.GONE);
+                view.setVisibility(View.GONE);
                 alertDialog.show();
             }
 
@@ -107,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
                                 || url.startsWith("https://www.onenote.com/common1pauth/msaimplicitauthcallback?redirectUrl=https%3a%2f%2fwww.onenote.com%2fstickynotes")
                                 || url.startsWith("https://www.onenote.com/common1pauth/signout?redirectUrl=https%3A%2F%2Fwww.onenote.com%2Fcommon1pauth%2Fsignin%3FredirectUrl%3Dhttps%253A%252F%252Fwww.onenote.com%252Fstickynotes")
                 ) {
-                    webStickies.setVisibility(View.GONE);
+                    view.setVisibility(View.GONE);
                     return false;
                 } else {// open rest of URLS in default browser
                     Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
@@ -122,11 +120,11 @@ public class MainActivity extends AppCompatActivity {
                 super.onPageFinished(view, url);
 
                 if (useDarkTheme)
-                    injectScriptFile(webStickies, "js/dark_theme.js");
+                    injectScriptFile(view, "js/dark_theme.js");
                 else
-                    injectScriptFile(webStickies, "js/light_theme.js");
+                    injectScriptFile(view, "js/light_theme.js");
 
-                webStickies.loadUrl("javascript: window.CallToAnAndroidFunction.setVisible()");
+                view.loadUrl("javascript: window.CallToAnAndroidFunction.setVisible()");
             }
 
             private void injectScriptFile(WebView view, String scriptFile) {
@@ -180,8 +178,21 @@ public class MainActivity extends AppCompatActivity {
         } else if ((keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)){
             toggleTheme(true);
         } else if ((keyCode == KeyEvent.KEYCODE_BACK)) {
-            // back button reloads the page into the other theme
-            toggleTheme(!useDarkTheme);
+            //toggleTheme(!useDarkTheme); // back button reloads the page into the other theme
+
+            // must press back twice within 2 seconds to exit app
+            if (singleBack) {
+                super.onBackPressed();
+                return true;
+            }
+            this.singleBack = true;
+            Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    singleBack=false;
+                }
+            }, 2000);
         }
         return true;
     }

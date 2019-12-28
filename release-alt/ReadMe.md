@@ -1,1 +1,0 @@
-This is the location for the versions that are needed to post the app on websites that still only test for signature version 1, instead of checking for signature version 2.
