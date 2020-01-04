@@ -1,5 +1,14 @@
 package aliendrew.ms.stickynotes;
 
+// NOTES:
+//
+// Android emulators are not updated with the newest version of Android System WebView and,
+//   therefore, are not reliable for testing this app below API 24. Physical device tests show that
+//   at least API 20 (fully updated) allows this app to work (where the emulator fails).
+// Since Android KitKat (API 19) doesn't have separate Android System WebView app that can be
+//   updated, the latest CSS code being used on https://onenote.com/stickynotes will not work on
+//   that version.
+
 // basics
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
@@ -12,7 +21,6 @@ import android.util.Base64;
 // no internet connection detection
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.view.WindowManager.LayoutParams;
 // toggle theme requirements
 import android.view.KeyEvent;
 import android.view.View;
