@@ -22,6 +22,8 @@ Perks so far:
 * No ADs (for obvious reasons)
 * Open-source! https://github.com/TheAlienDrew/Unofficial-Sticky-Notes
 
-To activate the dark theme, press the volume down key. To go back to the light theme, press the volume up key. Or if you can't use the volume keys, you can press the back button to toggle through them.
+To activate the dark theme, press the volume down key. To go back to the light theme, press the volume up key.
 
-Theme changes are located at https://userstyles.org/styles/170362/microsoft-sticky-notes-dark-theme
+Theme changes are located at https://userstyles.org/styles/170362/microsoft-sticky-notes-dark-mode
+
+* If the app doesn't appear to be loading correctly, please make sure that you have Android System WebView installed and up-to-date. You can get it at https://play.google.com/store/apps/details?id=com.google.android.webview
