@@ -1,9 +1,10 @@
 # Unofficial-Sticky-Notes
 Because MS is pesky, I created the sticky notes app standalone (free, no ads, open-source)
 
-You can download the app from 3+ locations so far:
+You can download the app from 4+ locations so far:
 * [Google Play](https://play.google.com/store/apps/details?id=aliendrew.ms.stickynotes)
 * [Amazon Apps](https://www.amazon.com/dp/B07XLK8KVC/ref=apps_sf_sta)
+* [XDA Labs](https://labs.xda-developers.com/store/app/aliendrew.ms.stickynotes)
 * [Aptoide](https://aliendrew-stickynotes.en.aptoide.com/?store_name=aliendrew)
 
 And any Google Play mirrors, such as, but not limited to, APKPure.
