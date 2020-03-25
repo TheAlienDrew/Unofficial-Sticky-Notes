@@ -3,20 +3,22 @@ package aliendrew.ms.stickynotes;
 // NOTES:
 //
 // Android emulators are not updated with the newest version of Android System WebView and,
-//   therefore, are not reliable for testing this app below API 24. Physical device tests show that
-//   at least API 20 (fully updated) allows this app to work (where the emulator fails).
-// Since Android KitKat (API 19) doesn't have separate Android System WebView app that can be
-//   updated, the latest CSS code being used on https://onenote.com/stickynotes will not work on
-//   that version.
+//   therefore, are not reliable for testing this app below API 24. When not using an Android Studio
+//   emulator, at least API 21 (Android Lollipop fully updated) runs the app with no problems.
+// Since Android KitKat 4.4.4 (APIs 19 & 20) doesn't have a separate Android System WebView app that
+//   can be updated, the CSS4 code being used on https://onenote.com/stickynotes (CSS4) will not
+//   work. More specifically https://caniuse.com/#feat=css-variables&compare=android+4.4.3-4.4.4
 
 // basics
-import androidx.appcompat.app.AppCompatActivity;
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.graphics.Color;
 import android.widget.Toast;
+import android.content.Intent;
 // used to inject JS files
 import java.io.InputStream;
 import java.io.IOException;
+import java.util.Objects;
 import android.util.Base64;
 // no internet connection detection
 import android.app.AlertDialog;
@@ -27,18 +29,17 @@ import android.view.View;
 import android.content.SharedPreferences;
 // webView stuff
 import android.webkit.WebChromeClient;
-import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.content.Intent;
+import android.webkit.WebView;
 import android.net.Uri;
 // webView flicker fix
 import android.webkit.JavascriptInterface;
 import android.os.Handler;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends ImmersiveAppCompatActivity {
 
     // general app controls
-    boolean singleBack = false;
+    private boolean singleBack = false;
 
     // Use the chosen theme
     private static final String PREFS_NAME = "prefs";
@@ -47,33 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
     private NoSuggestionsWebView webStickies;
 
-    // allow the app to hide the bars top and bottom to use the full screen
-    // * taken from the android dev docs
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            hideSystemUI();
-        }
-    }
-    private void hideSystemUI() {
-        View decorView = getWindow().getDecorView();
-        decorView.setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY // altered so it doesn't stay on screen
-                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_FULLSCREEN);
-    }
-    private void showSystemUI() {
-        View decorView = getWindow().getDecorView();
-        decorView.setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-    }
-
+    @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -115,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
                         finish();
                     }
                 });
-                alertDialog.getWindow().getAttributes().verticalMargin = 0.3F;
+                Objects.requireNonNull(alertDialog.getWindow()).getAttributes().verticalMargin = 0.3F;
 
                 view.setVisibility(View.GONE);
                 alertDialog.show();
@@ -173,6 +148,7 @@ public class MainActivity extends AppCompatActivity {
 
                     // String-ify the script byte-array using BASE64 encoding !!!
                     String encoded = Base64.encodeToString(buffer, Base64.NO_WRAP);
+                    //noinspection SpellCheckingInspection
                     view.loadUrl("javascript:(function() {" +
                             "var parent = document.getElementsByTagName('head').item(0);" +
                             "var script = document.createElement('script');" +
@@ -250,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // used to enable webView after fully loaded theme
-    public class myJavaScriptInterface {
+    class myJavaScriptInterface {
         @JavascriptInterface
         public void setVisible(){
             runOnUiThread(new Runnable() {

@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/ic_launcher_background"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    tools:ignore="Overdraw">
 
     <ImageView
         android:id="@+id/splashImage"
@@ -15,23 +16,13 @@
         android:src="@drawable/ic_splash"
         android:contentDescription="@string/loading" />
 
-    <WebView
-        android:id="@+id/loadingLight"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone" />
-
-    <WebView
-        android:id="@+id/loadingDark"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone" />
-
     <aliendrew.ms.stickynotes.NoSuggestionsWebView
         android:id="@+id/webView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone"
-        android:windowSoftInputMode="stateVisible" />
+        android:imeOptions="flagNoExtractUi"
+        android:windowSoftInputMode="adjustResize" />
+    <!-- might not need the input mode change -->
 
 </RelativeLayout>

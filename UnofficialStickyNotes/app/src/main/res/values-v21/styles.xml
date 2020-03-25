@@ -10,6 +10,7 @@
 
         <!-- this is an edit -->
         <item name="android:windowBackground">@color/ic_launcher_under</item>
+        <item name="android:navigationBarColor">@color/ic_launcher_under</item>
     </style>
 
 </resources>
