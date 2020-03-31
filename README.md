@@ -19,6 +19,7 @@ Ever find yourself needing to use the Sticky Notes app that you use on your Wind
 
 Perks so far:
 * Dark theme to compliment the default light theme
+* Works offline
 * No ADs (for obvious reasons)
 * Open-source! https://github.com/TheAlienDrew/Unofficial-Sticky-Notes
 
