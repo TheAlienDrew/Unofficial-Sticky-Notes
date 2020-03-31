@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.util.Objects;
 import android.util.Base64;
 // no internet connection detection
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 // toggle theme requirements
@@ -31,6 +33,7 @@ import android.content.SharedPreferences;
 import android.webkit.WebChromeClient;
 import android.webkit.WebViewClient;
 import android.webkit.WebView;
+import android.webkit.WebSettings;
 import android.net.Uri;
 // webView flicker fix
 import android.webkit.JavascriptInterface;
@@ -45,6 +48,12 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     private static final String PREFS_NAME = "prefs";
     private static final String PREF_DARK_THEME = "dark_theme";
     private boolean useDarkTheme = false;
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService( CONNECTIVITY_SERVICE );
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
 
     private NoSuggestionsWebView webStickies;
 
@@ -68,7 +77,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         webStickies.setWebChromeClient(new WebChromeClient());
         webStickies.setWebViewClient(new WebViewClient() {
 
-            // INTERNET DETECTION block
+            // INTERNET FAIL DETECTION block
             public void onReceivedError(final WebView view, int errorCode, String description, String failingUrl) {
                 super.onReceivedError(view, errorCode, description, failingUrl);
 
@@ -163,6 +172,10 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             }
         });
 
+        // allows for caching the website when using it offline
+        webStickies.getSettings().setAppCachePath(getApplicationContext().getCacheDir().getAbsolutePath());
+        webStickies.getSettings().setAllowFileAccess(true);
+        webStickies.getSettings().setAppCacheEnabled(true);
         // enables site to work
         webStickies.getSettings().setJavaScriptEnabled(true);
         webStickies.addJavascriptInterface(new myJavaScriptInterface(), "CallToAnAndroidFunction");
@@ -176,6 +189,13 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         //webStickies.getSettings().setLoadWithOverviewMode(true);
         webStickies.setVerticalScrollBarEnabled(false);
         webStickies.setHorizontalScrollBarEnabled(false);
+
+        // load webView online/offline depending on situation...
+        // it will load online by default
+        webStickies.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
+        if ( !isNetworkAvailable() ) {
+            webStickies.getSettings().setCacheMode( WebSettings.LOAD_CACHE_ELSE_NETWORK );
+        }
 
         webStickies.loadUrl("https://www.onenote.com/stickynotes");
     }
