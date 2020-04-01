@@ -15,11 +15,6 @@ import android.os.Bundle;
 import android.graphics.Color;
 import android.widget.Toast;
 import android.content.Intent;
-// used to inject JS files
-import java.io.InputStream;
-import java.io.IOException;
-import java.util.Objects;
-import android.util.Base64;
 // no internet connection detection
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -29,7 +24,7 @@ import android.content.DialogInterface;
 import android.view.KeyEvent;
 import android.view.View;
 import android.content.SharedPreferences;
-// webView stuff
+// webView basics
 import android.webkit.WebChromeClient;
 import android.webkit.WebViewClient;
 import android.webkit.WebView;
@@ -38,24 +33,87 @@ import android.net.Uri;
 // webView flicker fix
 import android.webkit.JavascriptInterface;
 import android.os.Handler;
+// webView javascript injection
+import java.io.InputStream;
+import java.io.IOException;
+import java.util.Objects;
+import android.util.Base64;
+// webView file uploads
+import android.webkit.ValueCallback;
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import android.os.Environment;
+import android.app.Activity;
+import android.provider.MediaStore;
 
 public class MainActivity extends ImmersiveAppCompatActivity {
 
     // general app controls
     private boolean singleBack = false;
 
-    // Use the chosen theme
+    // file upload initialize
+    public static final int INPUT_FILE_REQUEST_CODE = 1;
+
+    // use the chosen theme
     private static final String PREFS_NAME = "prefs";
     private static final String PREF_DARK_THEME = "dark_theme";
     private boolean useDarkTheme = false;
 
+    // function to see if we're online
     private boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService( CONNECTIVITY_SERVICE );
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        @SuppressWarnings("ConstantConditions") NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
     private NoSuggestionsWebView webStickies;
+
+    // other needed file upload variables
+    private ValueCallback<Uri[]> mFilePathCallback;
+    private String mCameraPhotoPath;
+
+    // functions for file upload
+    // code via http://developer.android.com/training/camera/photobasics.html
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        @SuppressLint("SimpleDateFormat") String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES);
+        return File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+    }
+    @Override
+    public void onActivityResult (int requestCode, int resultCode, Intent data) {
+        if(requestCode != INPUT_FILE_REQUEST_CODE || mFilePathCallback == null) {
+            super.onActivityResult(requestCode, resultCode, data);
+            return;
+        }
+
+        Uri[] results = null;
+
+        // Check that the response is a good one
+        if(resultCode == Activity.RESULT_OK) {
+            if(data == null) {
+                // If there is not data, then we may have taken a photo
+                if(mCameraPhotoPath != null) {
+                    results = new Uri[]{Uri.parse(mCameraPhotoPath)};
+                }
+            } else {
+                String dataString = data.getDataString();
+                if (dataString != null) {
+                    results = new Uri[]{Uri.parse(dataString)};
+                }
+            }
+        }
+
+        mFilePathCallback.onReceiveValue(results);
+        mFilePathCallback = null;
+    }
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -74,7 +132,57 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             webStickies.setBackgroundColor(Color.WHITE);
         }
 
-        webStickies.setWebChromeClient(new WebChromeClient());
+        webStickies.setWebChromeClient(new WebChromeClient() {
+            public boolean onShowFileChooser(
+                    WebView webView, ValueCallback<Uri[]> filePathCallback,
+                    WebChromeClient.FileChooserParams fileChooserParams) {
+                if(mFilePathCallback != null) {
+                    mFilePathCallback.onReceiveValue(null);
+                }
+                mFilePathCallback = filePathCallback;
+
+                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                    // Create the File where the photo should go
+                    File photoFile = null;
+                    try {
+                        photoFile = createImageFile();
+                        takePictureIntent.putExtra("PhotoPath", mCameraPhotoPath);
+                    } catch (IOException ex) {
+                        // Error occurred while creating the File
+                    }
+
+                    // Continue only if the File was successfully created
+                    if (photoFile != null) {
+                        mCameraPhotoPath = "file:" + photoFile.getAbsolutePath();
+                        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
+                                Uri.fromFile(photoFile));
+                    } else {
+                        takePictureIntent = null;
+                    }
+                }
+
+                Intent contentSelectionIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                contentSelectionIntent.addCategory(Intent.CATEGORY_OPENABLE);
+                contentSelectionIntent.setType("image/*");
+
+                Intent[] intentArray;
+                if(takePictureIntent != null) {
+                    intentArray = new Intent[]{takePictureIntent};
+                } else {
+                    intentArray = new Intent[0];
+                }
+
+                Intent chooserIntent = new Intent(Intent.ACTION_CHOOSER);
+                chooserIntent.putExtra(Intent.EXTRA_INTENT, contentSelectionIntent);
+                chooserIntent.putExtra(Intent.EXTRA_TITLE, "Image Chooser");
+                chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray);
+
+                startActivityForResult(chooserIntent, INPUT_FILE_REQUEST_CODE);
+
+                return true;
+            }
+        });
         webStickies.setWebViewClient(new WebViewClient() {
 
             // INTERNET FAIL DETECTION block
