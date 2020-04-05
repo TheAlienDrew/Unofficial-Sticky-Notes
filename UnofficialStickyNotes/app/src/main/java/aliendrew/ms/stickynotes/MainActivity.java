@@ -88,10 +88,10 @@ public class MainActivity extends ImmersiveAppCompatActivity {
 
     // functions for permissions
     public boolean file_permission(){
-        if(Build.VERSION.SDK_INT >=23 && (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)) {
-            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA}, 1);
+        if (Build.VERSION.SDK_INT >=23 && (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)) {
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
             return false;
-        }else{
+        } else {
             return true;
         }
     }
@@ -342,9 +342,9 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         webStickies.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
         webStickies.setVerticalScrollBarEnabled(false);
         webStickies.setHorizontalScrollBarEnabled(false);
-        // TODO: testing
-        webStickies.clearCache(false);
-        webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        // TODO: testing... need to get http images to show up again
+        //webStickies.clearCache(false);
+        //webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
 
         // load webView online/offline depending on situation...
         // it will load online by default

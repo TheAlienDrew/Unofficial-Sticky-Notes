@@ -7,8 +7,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <!-- camera and write external storage is needed for uploading camera-taken photos -->
-    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- write external storage is needed for uploading camera-taken photos -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <!-- just used for app view format -->
     <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
