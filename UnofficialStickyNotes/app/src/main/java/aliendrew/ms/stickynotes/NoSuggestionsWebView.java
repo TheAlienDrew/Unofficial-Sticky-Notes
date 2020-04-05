@@ -1,10 +1,12 @@
 package aliendrew.ms.stickynotes;
 
+import android.app.Activity;
 import android.content.Context;
 import android.text.InputType;
 import android.util.AttributeSet;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebView;
 
 public class NoSuggestionsWebView extends WebView {

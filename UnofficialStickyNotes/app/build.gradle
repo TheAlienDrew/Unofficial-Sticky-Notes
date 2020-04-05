@@ -7,8 +7,8 @@ android {
         applicationId "aliendrew.ms.stickynotes"
         minSdkVersion 21
         targetSdkVersion 29
-        versionCode 30
-        versionName "2.3.0"
+        versionCode 31
+        versionName "2.3.6"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -26,4 +26,5 @@ dependencies {
     testImplementation 'junit:junit:4.13'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    implementation 'com.android.support:design:28.0.0'
 }

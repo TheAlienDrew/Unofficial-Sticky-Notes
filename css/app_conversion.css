@@ -22,6 +22,6 @@ html {
 }
 
 /* Disables unuseful button that either shouldn't be on the app, or don't work with it */
-#O365_HeaderLeftRegion, #HelpIcon_container {
+#O365_HeaderLeftRegion {
 	display: none;
 }
