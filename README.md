@@ -13,7 +13,7 @@ If you'd like to download an older version of the app, all the way to the first 
 
 --- **App Description** ---
 
-DISCLAIMER: I, and this app, are in no way affiliated with Microsoft. But you can help try to get the Microsoft Sticky Notes dev team to consider making a standalone Sticky Notes app by signing the petition at http://chng.it/4tT4hx4GrY.
+DISCLAIMER: I, and this app, are in no way affiliated with Microsoft. But you can help try to get the Microsoft Sticky Notes dev team to consider making a standalone Sticky Notes app by signing the petition at https://www.change.org/standalone-sticky-notes-microsoft.
 
 Ever find yourself needing to use the Sticky Notes app that you use on your Windows 10? And maybe you use the syncing feature to take a look at those same notes on the web. There was, and still is the ability to use Sticky Notes in Microsoft's OneNote app, but for certain devices, such as tablets, that option is not available. The only other way to use Sticky Notes from that point is to use the Microsoft Launcher, but not everyone uses that. For that very reason, I decided to create this web based app for those that can't use Microsoft OneNote, and don't want to use Microsoft Launcher.
 
