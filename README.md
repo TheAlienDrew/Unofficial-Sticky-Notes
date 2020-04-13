@@ -21,6 +21,7 @@ Perks so far:
 * Light and Dark themes + System default option
 * You can upload images into notes
 * It can be used offline
+* Swipe down to refresh
 * No ADs (for obvious reasons)
 * Open-source! https://github.com/TheAlienDrew/Unofficial-Sticky-Notes
 

@@ -16,12 +16,14 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.ClipData;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -31,21 +33,27 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.text.method.LinkMovementMethod;
 import android.util.Base64;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 
+import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
+import android.webkit.JsResult;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,9 +63,10 @@ import java.util.Date;
 import java.util.Objects;
 
 public class MainActivity extends ImmersiveAppCompatActivity {
-
     // general app controls
+    private boolean appLaunched = true;
     private boolean singleBack = false;
+    SwipeRefreshLayout swipeRefresher;
 
     // file upload initialize
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -70,6 +79,12 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     private static final String PREF_THEME = "theme";
     private boolean useSystemTheme = false;
     private boolean useDarkTheme = false;
+
+    // for first time use
+    private Dialog popupDialog;
+    private WindowManager.LayoutParams popupLayoutParams;
+    private static final String PREF_FIRST_USE = "first_use";
+    private boolean firstUse = true;
 
     // check system theme
     private boolean isSystemDark() {
@@ -84,6 +99,9 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
+    // webView variables
+    private WebView webLoadingDark;
+    private WebView webLoadingLight;
     private NoSuggestionsWebView webStickies;
 
     // functions for permissions
@@ -152,6 +170,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         file_path.onReceiveValue(results);
         file_path = null;
     }
+
     public class ChromeClient extends WebChromeClient {
         public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
             if (file_permission()) {
@@ -193,6 +212,12 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 startActivityForResult(chooserIntent, file_req_code);
                 return true;
             } else return false;
+        }
+
+        // allow JS alert dialogs
+        @Override
+        public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
+            return super.onJsAlert(view, url, message, result);
         }
     }
 
@@ -245,6 +270,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                             || url.startsWith("https://www.onenote.com/common1pauth/msaimplicitauthcallback?redirectUrl=https%3a%2f%2fwww.onenote.com%2fstickynotes")
                             || url.startsWith("https://www.onenote.com/common1pauth/signout?redirectUrl=https%3A%2F%2Fwww.onenote.com%2Fcommon1pauth%2Fsignin%3FredirectUrl%3Dhttps%253A%252F%252Fwww.onenote.com%252Fstickynotes")
             ) {
+                swipeRefresher.setRefreshing(true);
                 view.setVisibility(View.GONE);
                 return false;
             } else {// open rest of URLS in default browser
@@ -256,6 +282,11 @@ public class MainActivity extends ImmersiveAppCompatActivity {
 
         // THEME MOD block
         @Override
+        public void onPageStarted(WebView view, String url, Bitmap favicon) {
+            //TODO:maybe enable stuff here
+            //swipeRefresher.setRefreshing(true);
+        }
+        @Override
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
 
@@ -264,9 +295,23 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             else
                 injectScriptFile(view, "js/light_theme.js");
 
+            // used to enable and disable the refresher depending on where at in notes
+            injectScriptFile(view, "js/noteList_onscroll.js");
+
             view.loadUrl("javascript: window.CallToAnAndroidFunction.setVisible()");
             // close keyboard that automatically opens on reload
             view.loadUrl("javascript: setTimeout(function(){document.activeElement.blur()},1100)");
+
+            // turn off refresher spinner, and recheck if possible to reload
+            swipeRefresher.setRefreshing(false);
+            view.loadUrl("javascript: window.CallToAnAndroidFunction.setSwipeRefresher()");
+
+            // make sure app knows it has loaded all the way at least once
+            if (appLaunched) {
+                if (useDarkTheme) webLoadingDark.setVisibility(View.VISIBLE);
+                else webLoadingLight.setVisibility(View.VISIBLE);
+            }
+            appLaunched = false;
         }
 
         private void injectScriptFile(WebView view, String scriptFile) {
@@ -301,9 +346,11 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // get theme
+        // get preferences
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        Boolean prefFirstUse = preferences.getBoolean(PREF_FIRST_USE, true);
         String prefTheme = preferences.getString(PREF_THEME, "system");
+        firstUse = prefFirstUse;
         switch (prefTheme) {
             case "dark":
                 useDarkTheme = true;
@@ -314,13 +361,29 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 break;
         }
 
+        // initialize swipe refresh layout
+        swipeRefresher = this.findViewById(R.id.swipeContainer);
+
+        // loading spinners are not shown until after the first app launch
+        webLoadingDark = findViewById(R.id.loadingDark);
+        webLoadingLight = findViewById(R.id.loadingLight);
         // get view
         webStickies = findViewById(R.id.webView);
         WebSettings webSettings = webStickies.getSettings();
 
+        // set loading screens
+        webLoadingDark.setBackgroundColor(Color.BLACK);
+        webLoadingDark.loadUrl("file:///android_asset/html/loading-dark.html");
+        webLoadingLight.setBackgroundColor(Color.WHITE);
+        webLoadingLight.loadUrl("file:///android_asset/html/loading-light.html");
+
         if (useDarkTheme) {
+            swipeRefresher.setColorSchemeResources(R.color.colorAccent);
+            swipeRefresher.setProgressBackgroundColorSchemeColor(getResources().getColor(R.color.colorDarkPrimary));
             webStickies.setBackgroundColor(Color.BLACK);
         } else {
+            swipeRefresher.setColorSchemeResources(R.color.colorAccentDark);
+            swipeRefresher.setProgressBackgroundColorSchemeColor(getResources().getColor(R.color.colorLightPrimary));
             webStickies.setBackgroundColor(Color.WHITE);
         }
 
@@ -349,11 +412,69 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         // load webView online/offline depending on situation...
         // it will load online by default
         webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
-        if ( !isNetworkAvailable() ) {
-            webSettings.setCacheMode( WebSettings.LOAD_CACHE_ELSE_NETWORK );
+        if (!isNetworkAvailable()) {
+            webSettings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
         }
 
+        // start the webView
         webStickies.loadUrl("https://www.onenote.com/stickynotes");
+
+        // add swipe to refresh listener
+        swipeRefresher.setOnRefreshListener(
+                new SwipeRefreshLayout.OnRefreshListener() {
+                    @Override
+                    public void onRefresh() {
+                        webStickies.reload();
+                    }
+                }
+        );
+
+        // show first time use popup if needed
+        if (firstUse) {
+            Dialog dialog = new Dialog(MainActivity.this);
+            popupDialog = dialog;
+            popupDialog.setTitle("Let's petition Microsoft OneNote Dev's!");
+            popupDialog.setContentView(R.layout.first_use_popup);
+            popupDialog.setCanceledOnTouchOutside(false);
+            WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
+            layoutParams.copyFrom(Objects.requireNonNull(popupDialog.getWindow()).getAttributes());
+            layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
+            layoutParams.height = WindowManager.LayoutParams.MATCH_PARENT;
+            popupLayoutParams = layoutParams;
+            TextView popupInfo = dialog.findViewById(R.id.popupInfo);
+            popupInfo.setMovementMethod(LinkMovementMethod.getInstance());
+            TextView appAuthor = dialog.findViewById(R.id.appAuthor);
+            Button closePopupBtn = dialog.findViewById(R.id.closePopupBtn);
+
+            if (useDarkTheme) {
+                popupDialog.getWindow().setBackgroundDrawableResource(R.color.colorDarkPrimaryDark);
+                popupInfo.setTextColor(Color.WHITE);
+                popupInfo.setLinkTextColor(getResources().getColor(R.color.colorAccent));
+                appAuthor.setTextColor(Color.WHITE);
+                closePopupBtn.setTextColor(Color.WHITE);
+                closePopupBtn.setBackgroundColor(getResources().getColor(R.color.colorDarkPrimary));
+            } else {
+                popupDialog.getWindow().setBackgroundDrawableResource(R.color.colorLightPrimary);
+                popupInfo.setTextColor(Color.BLACK);
+                popupInfo.setLinkTextColor(getResources().getColor(R.color.colorAccentDark));
+                appAuthor.setTextColor(Color.BLACK);
+                closePopupBtn.setTextColor(Color.BLACK);
+                closePopupBtn.setBackgroundColor(getResources().getColor(R.color.colorLightPrimaryDark));
+            }
+
+            closePopupBtn.setOnClickListener(new View.OnClickListener()
+            {
+                // @Override
+                public void onClick(View v) {
+                    popupDialog.dismiss();
+
+                    firstUse = false;
+                    SharedPreferences.Editor editor = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit();
+                    editor.putBoolean(PREF_FIRST_USE, firstUse);
+                    editor.apply();
+                }
+            });
+        }
     }
 
     // make back button exit app
@@ -410,14 +531,23 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         boolean darkTheme = false;
         if (theTheme.equals("dark") || ((theTheme.equals("system") && isSystemDark()))) {
             darkTheme = true;
+            swipeRefresher.setProgressBackgroundColorSchemeColor(getResources().getColor(R.color.colorDarkPrimary));
+            webLoadingDark.setVisibility(View.VISIBLE);
+            webLoadingLight.setVisibility(View.GONE);
             webStickies.setBackgroundColor(Color.BLACK);
-        } else webStickies.setBackgroundColor(Color.WHITE);
+        } else {
+            swipeRefresher.setProgressBackgroundColorSchemeColor(getResources().getColor(R.color.colorLightPrimary));
+            webLoadingDark.setVisibility(View.GONE);
+            webLoadingLight.setVisibility(View.VISIBLE);
+            webStickies.setBackgroundColor(Color.WHITE);
+        }
 
         SharedPreferences.Editor editor = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit();
         editor.putString(PREF_THEME, theTheme);
         editor.apply();
 
         useDarkTheme = darkTheme;
+        if (firstUse) popupDialog.dismiss();
         webStickies.setVisibility(View.GONE);
         webStickies.reload();
     }
@@ -433,6 +563,31 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                         @Override
                         public void run() {
                             webStickies.setVisibility(View.VISIBLE);
+                            if (firstUse) {
+                                popupDialog.show();
+                                Objects.requireNonNull(popupDialog.getWindow()).setAttributes(popupLayoutParams);
+                            }
+                        }
+                    }, 800);
+                }
+            });
+        }
+        @JavascriptInterface
+        public void setSwipeRefresher(final int elementScrollTop){
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            int minScrollTop = 5;
+                            // enable if less than or equal to minimum scrollTop, otherwise, disable
+                            if (elementScrollTop <= minScrollTop) {
+                                swipeRefresher.setEnabled(true);
+                            } else {
+                                swipeRefresher.setRefreshing(false);
+                                swipeRefresher.setEnabled(false);
+                            }
                         }
                     }, 800);
                 }
