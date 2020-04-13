@@ -254,26 +254,18 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         // LINKS OPEN AS EXTERNAL block
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            if (// open in default browser exception
-                    url.startsWith("https://www.onenote.com/common1pauth/exchangecode?error=msa_signup")) {
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                startActivity(intent);
-                return true;
-            } else if (// open in webView
+            if (// open in webView
                     url.startsWith("https://www.onenote.com/stickynotes")
                             || url.startsWith("https://www.onenote.com/common1pauth/signin?redirectUrl=https%3A%2F%2Fwww.onenote.com%2Fstickynotes")
                             || url.startsWith("https://login.windows.net/common/oauth2/authorize")
                             || url.startsWith("https://login.microsoftonline.com/common/oauth2/authorize")
-                            || url.startsWith("https://www.onenote.com/common1pauth/exchangecode")
+                            || (url.startsWith("https://www.onenote.com/common1pauth/exchangecode") && !url.endsWith("?error=msa_signup"))
                             || url.startsWith("https://login.live.com/oauth20_authorize.srf")
                             || url.startsWith("https://login.live.com/ppsecure/post.srf")
                             || url.startsWith("https://www.onenote.com/common1pauth/msaimplicitauthcallback?redirectUrl=https%3a%2f%2fwww.onenote.com%2fstickynotes")
                             || url.startsWith("https://www.onenote.com/common1pauth/signout?redirectUrl=https%3A%2F%2Fwww.onenote.com%2Fcommon1pauth%2Fsignin%3FredirectUrl%3Dhttps%253A%252F%252Fwww.onenote.com%252Fstickynotes")
-            ) {
-                swipeRefresher.setRefreshing(true);
-                view.setVisibility(View.GONE);
-                return false;
-            } else {// open rest of URLS in default browser
+            ) return false;
+            else {// open rest of URLS in default browser
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 startActivity(intent);
                 return true;
@@ -282,9 +274,8 @@ public class MainActivity extends ImmersiveAppCompatActivity {
 
         // THEME MOD block
         @Override
-        public void onPageStarted(WebView view, String url, Bitmap favicon) {
-            //TODO:maybe enable stuff here
-            //swipeRefresher.setRefreshing(true);
+        public void onPageStarted(WebView view, String url, Bitmap bitmap) {
+            view.setVisibility(View.GONE);
         }
         @Override
         public void onPageFinished(WebView view, String url) {
@@ -302,8 +293,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             // close keyboard that automatically opens on reload
             view.loadUrl("javascript: setTimeout(function(){document.activeElement.blur()},1100)");
 
-            // turn off refresher spinner, and recheck if possible to reload
-            swipeRefresher.setRefreshing(false);
+            // check if refresher can swipe after page load
             view.loadUrl("javascript: window.CallToAnAndroidFunction.setSwipeRefresher()");
 
             // make sure app knows it has loaded all the way at least once
@@ -424,6 +414,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 new SwipeRefreshLayout.OnRefreshListener() {
                     @Override
                     public void onRefresh() {
+                        swipeRefresher.setRefreshing(false);
                         webStickies.reload();
                     }
                 }
