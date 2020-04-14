@@ -522,11 +522,13 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         boolean darkTheme = false;
         if (theTheme.equals("dark") || ((theTheme.equals("system") && isSystemDark()))) {
             darkTheme = true;
+            swipeRefresher.setColorSchemeResources(R.color.colorAccent);
             swipeRefresher.setProgressBackgroundColorSchemeColor(getResources().getColor(R.color.colorDarkPrimary));
             webLoadingDark.setVisibility(View.VISIBLE);
             webLoadingLight.setVisibility(View.GONE);
             webStickies.setBackgroundColor(Color.BLACK);
         } else {
+            swipeRefresher.setColorSchemeResources(R.color.colorAccentDark);
             swipeRefresher.setProgressBackgroundColorSchemeColor(getResources().getColor(R.color.colorLightPrimary));
             webLoadingDark.setVisibility(View.GONE);
             webLoadingLight.setVisibility(View.VISIBLE);
