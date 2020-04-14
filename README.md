@@ -29,4 +29,4 @@ By default the app loads on system theme mode, meaning it goes according to how 
 
 Theme changes are located at https://userstyles.org/styles/170362/microsoft-sticky-notes-dark-mode
 
-* If the app doesn't appear to be loading correctly, please make sure that you have enabled all the required permissions for the app, and that Android System WebView installed and up-to-date. You can get it at https://play.google.com/store/apps/details?id=com.google.android.webview
+* If the app doesn't appear to be loading correctly, please make sure that you have enabled all the required permissions for the app, and that Android System WebView is installed and up-to-date. You can get it at https://play.google.com/store/apps/details?id=com.google.android.webview
