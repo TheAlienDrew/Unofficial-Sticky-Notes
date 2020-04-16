@@ -35,16 +35,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" >
 
-        <aliendrew.ms.stickynotes.NoSuggestionsWebView
+        <WebView
             android:id="@+id/webView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center|top"
             android:visibility="gone"
-            android:imeOptions="flagNoExtractUi"
             android:windowSoftInputMode="adjustResize" >
 
-        </aliendrew.ms.stickynotes.NoSuggestionsWebView>
+        </WebView>
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 

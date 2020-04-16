@@ -5,26 +5,18 @@
         <big><b>Welcome to Unofficial Sticky Notes!</b></big>
         \nThis app converts the Sticky Notes website version to work on Android Lollipop (5.0) and up.
         \n\n<u>Added Features</u>:
-        \n<br>&#8226; Toggle between light, dark, and system themes via the volume keys.
-        Additionally, they can be used to reload the page.</br>
-        \n<br>&#8226; Works offline, but you must sign into it at least once, for the sticky notes
-        to show up on your device.</br>
+        \n<br>&#8226; Toggle between light, dark, and system themes via the volume keys. Additionally, they can be used to reload the page.</br>
+        \n<br>&#8226; Works offline, but you must sign into it at least once, for the sticky notes to show up on your device.</br>
         \n<br>&#8226; You can now pull-to-refresh the app.</br>
         \n\n<u>Current Bugs</u>:
-        \n<br>&#8226; Android 10 devices currently can\'t use camera to upload pictures directly in
-        app (Google\'s fault).</br>
+        \n<br>&#8226; Normal text input mode causes text to not input correctly, so temporarily soft keyboards will have glide/voice typing turned off. (yes that includes GBoard)</br>
+        \n<br>&#8226; Android 10 devices currently can\'t use camera to upload pictures directly in app (Google\'s fault).</br>
         \n\n<u>Planned Features</u>:
         \n<br>&#8226; App menu/info button</br>
-        \n<br>&#8226; Undo/redo buttons for when editing notes (might be too much of a hassle to
-        implement)</br>
-        \n<br>&#8226; Widgets for single notes (do know that these won\'t be able to sync
-        automatically, due to how I this app is setup).</br>
-        \n\nThis app is open-sourced, so if you know how to code and want to help out, check out
-        <a href="https://github.com/TheAlienDrew/Unofficial-Sticky-Notes">my GitHub</a>.
-        \n\nIf you want Microsoft to create a true standalone version of Sticky Notes as a separate
-        app, please head to the
-        <a href="https://www.change.org/standalone-sticky-notes-microsoft">petition</a> I created to
-        make Sticky Notes a standalone app, and sign it.</string>
+        \n<br>&#8226; Undo/redo buttons for when editing notes (might be too much of a hassle to implement).</br>
+        \n<br>&#8226; Widgets for single notes (do know that these won\'t be able to sync automatically, due to how I this app is setup).</br>
+        \n\nThis app is open-sourced, so if you know how to code and want to help out, check out <a href="https://github.com/TheAlienDrew/Unofficial-Sticky-Notes">my GitHub</a>.
+        \n\nIf you want Microsoft to create a true standalone version of Sticky Notes as a separate app, please head to the <a href="https://www.change.org/standalone-sticky-notes-microsoft">petition</a> I created to make Sticky Notes a standalone app, and sign it.</string>
     <string name="developer">- AlienDrew, the developer</string>
     <string name="closeBtn">Close</string>
 </resources>

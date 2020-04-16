@@ -11,6 +11,10 @@ package aliendrew.ms.stickynotes;
 //
 // TODO: At this time, the camera function for taking pictures is broken on API 29 (Android 10), so
 //   only the file chooser is working until the issue is fixed.
+//
+// TODO: Additionally, Microsoft uses an older version of DraftJS on Sticky Notes that wasn't compatible
+//   with Android, and I'm not sure how to fix so it's using the latest version. So, for now, text
+//   input is limited (no glide/voice, and no auto-text manipulations).
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -102,7 +106,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     // webView variables
     private WebView webLoadingDark;
     private WebView webLoadingLight;
-    private NoSuggestionsWebView webStickies;
+    private DraftJSTempFixWebView webStickies;
 
     // functions for permissions
     public boolean file_permission(){
@@ -171,7 +175,9 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         file_path = null;
     }
 
+    // altered clients to work with sticky notes
     public class ChromeClient extends WebChromeClient {
+        // enable file choosing
         public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
             if (file_permission()) {
                 file_path = filePathCallback;
@@ -220,8 +226,6 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             return super.onJsAlert(view, url, message, result);
         }
     }
-
-    // altered webView client to work with sticky notes
     public class ViewClient extends WebViewClient {
         // INTERNET FAIL DETECTION block
         public void onReceivedError(final WebView view, int errorCode, String description, String failingUrl) {
@@ -286,15 +290,14 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             else
                 injectScriptFile(view, "js/light_theme.js");
 
-            // used to enable and disable the refresher depending on where at in notes
+            // enables/disables the refresher depending on scrollTop in note list
             injectScriptFile(view, "js/noteList_onscroll.js");
-
+            // check if refresher can swipe after page load
+            view.loadUrl("javascript: window.CallToAnAndroidFunction.setSwipeRefresher()");
+            // make the webView visible again
             view.loadUrl("javascript: window.CallToAnAndroidFunction.setVisible()");
             // close keyboard that automatically opens on reload
             view.loadUrl("javascript: setTimeout(function(){document.activeElement.blur()},1100)");
-
-            // check if refresher can swipe after page load
-            view.loadUrl("javascript: window.CallToAnAndroidFunction.setSwipeRefresher()");
 
             // make sure app knows it has loaded all the way at least once
             if (appLaunched) {
@@ -388,9 +391,6 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         webSettings.setJavaScriptEnabled(true);
         webStickies.addJavascriptInterface(new myJavaScriptInterface(), "CallToAnAndroidFunction");
         webSettings.setDomStorageEnabled(true);
-        // fixes keyboard suggestions/auto correct on some keyboards
-        webSettings.setSaveFormData(false);
-        webStickies.clearFormData();
         // visual fixes
         webStickies.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
         webStickies.setVerticalScrollBarEnabled(false);
