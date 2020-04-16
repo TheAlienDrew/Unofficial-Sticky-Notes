@@ -389,8 +389,8 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         webSettings.setAppCacheEnabled(true);
         // enables site to work
         webSettings.setJavaScriptEnabled(true);
-        webStickies.addJavascriptInterface(new myJavaScriptInterface(), "CallToAnAndroidFunction");
         webSettings.setDomStorageEnabled(true);
+        webStickies.addJavascriptInterface(new myJavaScriptInterface(), "CallToAnAndroidFunction");
         // visual fixes
         webStickies.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
         webStickies.setVerticalScrollBarEnabled(false);
