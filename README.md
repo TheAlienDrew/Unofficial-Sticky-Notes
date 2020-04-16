@@ -25,6 +25,9 @@ Perks so far:
 * No ADs (for obvious reasons)
 * Open-source! https://github.com/TheAlienDrew/Unofficial-Sticky-Notes
 
+Cons:
+* Right now, no one can use glide/text-to-chat/auto-correction/auto-suggestion features on soft keyboards such as, but not limited to, GBoard or Swift Keyboard. This is an issue with how Microsoft programmed the website version, because it uses an older version of DraftJS. Until that is updated, I'm afraid those keyboard features will be disabled for a while.
+
 By default the app loads on system theme mode, meaning it goes according to how your system sets the theme for your device. You can press volume up button to force on the light theme, or volume down button to force on the dark theme. From the forced themes, you can always get back to the system default option by pressing the volume down button if on the forced light theme, or by pressing the volume up button on the forced dark theme.
 
 Theme changes are located at https://userstyles.org/styles/170362/microsoft-sticky-notes-dark-mode
