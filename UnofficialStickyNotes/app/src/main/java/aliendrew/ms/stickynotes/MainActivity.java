@@ -42,10 +42,12 @@ import android.os.Handler;
 import android.provider.MediaStore;
 import android.text.method.LinkMovementMethod;
 import android.util.Base64;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 
+import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.JsResult;
@@ -535,10 +537,13 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             popupDialog = dialog;
             popupDialog.setContentView(R.layout.popup_updated);
             popupDialog.setCanceledOnTouchOutside(false);
+            DisplayMetrics displayMetrics = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+            int screenHeight = displayMetrics.heightPixels;
             WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
             layoutParams.copyFrom(Objects.requireNonNull(popupDialog.getWindow()).getAttributes());
             layoutParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
-            layoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
+            layoutParams.height = (int) Math.round(screenHeight * 0.85);
             popupLayoutParams = layoutParams;
             popupDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             popupDialog.getWindow().setBackgroundDrawableResource(dialogBg);
