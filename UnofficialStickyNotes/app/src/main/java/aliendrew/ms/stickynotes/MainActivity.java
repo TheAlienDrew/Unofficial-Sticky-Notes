@@ -12,6 +12,8 @@ package aliendrew.ms.stickynotes;
 // TODO: Microsoft uses an older version of DraftJS on Sticky Notes that wasn't compatible
 //   with Android, and I'm not sure how to fix so it's using the latest version. So, for now, text
 //   input is limited (no glide/voice, and no auto-text manipulations).
+//
+// TODO: Theme needs fix when uploading a photo
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -30,6 +32,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.ConnectivityManager;
+import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.Uri;
 import android.os.Build;
@@ -58,7 +61,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.widget.AlertDialogLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -79,6 +81,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     private static final String POPUP_TITLE = "Unofficial Sticky Notes v" + APP_VERSION;
 
     // general app controls
+    private boolean cacheErrorSent = false;
     private boolean appLaunched = true;
     private boolean disableReloading = true;
     private boolean singleBack = false;
@@ -112,34 +115,25 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     // function to see if we're online
     @SuppressWarnings("deprecation")
     public static boolean isNetworkAvailable(Context context) {
-        if(context == null)  return false;
-        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm == null) return false;
+        boolean isConnected = false;
 
-        if (connectivityManager != null) {
-            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.getActiveNetwork());
-                if (capabilities != null) {
-                    if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
-                        return true;
-                    } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
-                        return true;
-                    }  else //noinspection RedundantIfStatement
-                        if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)){
-                        return true;
-                    }
-                }
-            } else {
-                try {
-                    android.net.NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-                    if (activeNetworkInfo != null && activeNetworkInfo.isConnected()) {
-                        return true;
-                    }
-                } catch (Exception e) {
-                    Log.i("update_statut", "" + e.getMessage());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // reprogram
+            Network[] networks = cm.getAllNetworks();
+            if(networks.length>0){
+                for(Network network :networks){
+                    NetworkCapabilities nc = cm.getNetworkCapabilities(network);
+                    if (nc != null && nc.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET))
+                        isConnected = true;
                 }
             }
+        } else {
+            android.net.NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+            isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
         }
-        return false;
+        return isConnected;
     }
 
     // webView variables
@@ -274,11 +268,18 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     public class ViewClient extends WebViewClient {
         // INTERNET FAIL DETECTION block
         @SuppressWarnings("deprecation")
-        private void showViewClientError(final WebView view) {
-            if (view == null) return;
+        @Override
+        public void onReceivedError(final WebView view, int errorCode, String description, String failingUrl) {
+            super.onReceivedError(view, errorCode, description, failingUrl);
+            // if there is no view can't really show a error for it
+            // or if the page loaded a cached url of a page
+            // or if the error has already been sent to the user, also exit
+            if (view == null || !view.getUrl().equals(failingUrl) || cacheErrorSent) return;
 
+            // is page history back is possible, exit from here
             if (view.canGoBack()) {
                 view.goBack();
+                return;
             }
 
             final AlertDialog alertDialog;
@@ -289,16 +290,19 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 if (useDarkTheme) alertDialog = new AlertDialog.Builder(MainActivity.this, AlertDialog.THEME_DEVICE_DEFAULT_DARK).create();
                 else alertDialog = new AlertDialog.Builder(MainActivity.this, AlertDialog.THEME_DEVICE_DEFAULT_LIGHT).create();
             }
-            alertDialog.setTitle("Error");
+            alertDialog.setCanceledOnTouchOutside(false);
+            alertDialog.setTitle("Error, data not cached");
             alertDialog.setMessage("Check your internet connection and try again.");
             alertDialog.setButton(DialogInterface.BUTTON_NEUTRAL, "Try Again", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
+                    cacheErrorSent = false;
                     internetCacheLoad(view, null);
                 }
             });
             alertDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Quit", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
-                    System.exit(0);
+                    cacheErrorSent = false;
+                    finish();
                 }
             });
             alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
@@ -313,28 +317,16 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                     }
                 }
             });
-            alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                @Override
-                public void onCancel(DialogInterface dialogInterface) {
-                    finish();
-                }
-            });
             Objects.requireNonNull(alertDialog.getWindow()).getAttributes().verticalMargin = 0.3F;
 
             view.setVisibility(View.INVISIBLE);
             alertDialog.show();
-        }
-        @SuppressWarnings("deprecation")
-        @Override
-        public void onReceivedError(final WebView view, int errorCode, String description, String failingUrl) {
-            super.onReceivedError(view, errorCode, description, failingUrl);
-            showViewClientError(view);
+            cacheErrorSent = true;
         }
         @TargetApi(Build.VERSION_CODES.M)
         @Override
         public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error){
-            super.onReceivedError(view, request, error);
-            showViewClientError(view);
+            onReceivedError(view, error.getErrorCode(), error.getDescription().toString(), request.getUrl().toString());
         }
 
         // LINKS OPEN AS EXTERNAL block
