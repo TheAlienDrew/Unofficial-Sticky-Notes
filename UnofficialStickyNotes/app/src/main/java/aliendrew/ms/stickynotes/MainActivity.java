@@ -47,7 +47,6 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 
-import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.JsResult;
@@ -72,6 +71,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Objects;
 
 // TODO: AND THEN FIX SCROLLBAR COLOR FOR POPUP after all is done, update graphics
@@ -157,14 +157,16 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     // code via https://github.com/mgks/Os-FileUp
     @SuppressWarnings("deprecation")
     private File create_image() throws IOException{
-        @SuppressLint("SimpleDateFormat") String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         String imageFileName = "img_"+timeStamp+"_";
         File storageDir;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q)
+            // TODO: this is only a temp fix for when Android R comes out
             storageDir = this.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        else {
+        else
+            // TODO: getExternalStoragePublicDirectory only works on Android Q because I've enabled
+            //  requestLegacyExternalStorage in the AndroidManifest, otherwise it's deprecated
             storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-        }
         return File.createTempFile(imageFileName,".jpg",storageDir);
     }
     @Override
