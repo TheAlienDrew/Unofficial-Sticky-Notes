@@ -4,13 +4,29 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorDarkPrimary</item>
-        <item name="colorPrimaryDark">@color/colorDarkPrimaryDark</item>
+        <item name="colorPrimary">@color/colorDarkPrimaryLight</item>
+        <item name="colorPrimaryDark">@color/colorDarkPrimary</item>
         <item name="colorAccent">@color/colorAccent</item>
 
         <!-- this is an edit -->
         <item name="android:windowBackground">@color/ic_launcher_background</item>
         <item name="android:navigationBarColor">@color/ic_launcher_void</item>
+    </style>
+
+    <!-- Popup dialog themes -->
+    <style name="PopupDialogLight" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:windowNoTitle">false</item>
+    </style>
+    <style name="PopupDialogDark" parent="Theme.AppCompat.Dialog">
+        <item name="android:windowNoTitle">false</item>
+    </style>
+
+    <!-- Alert dialog themes -->
+    <style name="AlertDialogLight" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="android:background">@color/colorLightPrimary</item>
+    </style>
+    <style name="AlertDialogDark" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="android:background">@color/colorDarkPrimary</item>
     </style>
 
 </resources>

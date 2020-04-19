@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/rl"
+    android:id="@+id/relativeLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/ic_launcher_background"
@@ -13,6 +13,8 @@
         android:id="@+id/splashImage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
         android:scaleType="center"
         android:src="@drawable/ic_splash" />
 
@@ -20,30 +22,27 @@
         android:id="@+id/loadingLight"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center|top"
-        android:visibility="gone" />
+        android:visibility="invisible" />
 
     <WebView
         android:id="@+id/loadingDark"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center|top"
-        android:visibility="gone" />
+        android:visibility="invisible" />
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent" >
 
-        <aliendrew.ms.stickynotes.DraftJSTempFixWebView
+        <aliendrew.ms.stickynotes.NoTextCorrectionsWebView
             android:id="@+id/webView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:gravity="center|top"
-            android:visibility="gone"
+            android:visibility="invisible"
             android:windowSoftInputMode="adjustResize" >
 
-        </aliendrew.ms.stickynotes.DraftJSTempFixWebView>
+        </aliendrew.ms.stickynotes.NoTextCorrectionsWebView>
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 

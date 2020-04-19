@@ -7,16 +7,19 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.webkit.WebView;
 
-public class DraftJSTempFixWebView extends WebView {
-    public DraftJSTempFixWebView(Context context) {
+public class NoTextCorrectionsWebView extends WebView {
+
+    private static int reloaded = 0;
+
+    public NoTextCorrectionsWebView(Context context) {
         super(context);
     }
 
-    public DraftJSTempFixWebView(Context context, AttributeSet attrs) {
+    public NoTextCorrectionsWebView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public DraftJSTempFixWebView(Context context, AttributeSet attrs, int defStyle) {
+    public NoTextCorrectionsWebView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
     }
 

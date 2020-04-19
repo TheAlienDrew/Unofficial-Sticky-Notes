@@ -21,7 +21,33 @@ html {
     width:100%
 }
 
-/* Disables unuseful button that either shouldn't be on the app, or don't work with it */
+/* Disables the applications menu that offers other Microsoft products */
 #O365_HeaderLeftRegion {
 	display: none;
+}
+
+/* the following are to disable the floating add note button, 
+   since it can't be pressed when displayed over notes on Android mobile */
+.n-Phone .n-newNoteButtonContainer {
+    width: auto !important;
+    height: auto !important;
+    border-radius: initial !important;
+    -webkit-box-shadow: none !important;
+    box-shadow: none !important;
+    color: auto !important;
+    background: transparent !important;
+    font-weight: normal !important;
+    position: static !important;
+    z-index: auto !important;
+    -ms-flex-item-align: auto !important;
+    align-self: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    margin: 0 8px !important;
+}
+.n-Phone .n-newNoteButtonIcon {
+    display: block !important;
+}
+.n-Phone .n-newNoteButtonIcon .newNote path {
+    fill: var(--n-ui-icon) !important;
 }

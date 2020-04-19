@@ -7,8 +7,8 @@ android {
         applicationId "aliendrew.ms.stickynotes"
         minSdkVersion 21
         targetSdkVersion 29
-        versionCode 36
-        versionName "2.4.3"
+        versionCode 37
+        versionName "2.6.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -27,4 +27,13 @@ dependencies {
     testImplementation 'junit:junit:4.13'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    implementation 'org.jetbrains:annotations-java5:15.0'
+}
+
+allprojects {
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            options.compilerArgs << "-Xlint:deprecation"
+        }
+    }
 }
