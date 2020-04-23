@@ -15,10 +15,34 @@ javascript:(function() {
                 if(typeof(noteList) != 'undefined' && noteList != null && sidePane.childElementCount == 2) {
                     clearInterval(checkLoading);
 
-                    // let page control refresher
-                    noteListContainer.addEventListener('scroll', function() {
+                    // scrolling note list checks swipe
+                    noteListContainer.addEventListener('touchmove', function(e) {
                         window.Android.setSwipeRefresher(noteListContainer.scrollTop);
                     }, false);
+                    // pressing in note list checks swipe
+                    noteListContainer.addEventListener('touchstart', function(e) {
+                        window.Android.setSwipeRefresher(noteListContainer.scrollTop);
+                    }, false);
+                    // must stop the scroll-to-refresh when opening up a note/image
+                    var clickableListNotes = document.getElementsByClassName('n-noteList-notePreviewWrapper');
+                    var currentNote = document.querySelector('.n-noteEditViewContainer');
+                    // after clicking a note in list, disable swipe
+                    setInterval(function() {
+                        var i;
+                        for (i = 0; i < clickableListNotes.length; ++i) {
+                            clickableListNotes[i].onclick = function () {
+                                window.Android.setSwipeRefresher(1); // disables swipe
+                            };
+                        }
+                    }, 100);
+                    // disable swipe while editing a note
+                    currentNote.onclick = function () {
+                        // check classlist for inactivity
+                        if (!currentNote.classList.contains('inactive')) {
+                            window.Android.setSwipeRefresher(1);
+                        };
+                    }
+                    // execute once to determine swipe at page load
                     window.Android.setSwipeRefresher(noteListContainer.scrollTop);
 
                     // set webView to visible

@@ -17,7 +17,6 @@ public abstract class ImmersiveAppCompatActivity extends AppCompatActivity {
     private HideHandler mHideHandler;
 
     private static boolean softKeyboardOpen = false;
-    public SwipeRefreshLayout theSwipeRefresher;
     public NoTextCorrectionsWebView theWebView;
 
     public static boolean keyboardVisible() {
@@ -62,21 +61,12 @@ public abstract class ImmersiveAppCompatActivity extends AppCompatActivity {
                     if (!softKeyboardOpen) {
                         softKeyboardOpen = true;
                         setToImmersiveMode(false);
-                        // disable refreshing
-                        if (theSwipeRefresher != null) {
-                            theSwipeRefresher.setEnabled(false);
-                            theSwipeRefresher.setRefreshing(false);
-                        }
                     }
                 } else {
                     // keyboard is closed
                     if (softKeyboardOpen) {
                         softKeyboardOpen = false;
                         setToImmersiveMode(true);
-                        // conditionally enable swipe to refresh
-                        if (theSwipeRefresher != null && theWebView != null) {
-                            theWebView.loadUrl("javascript: window.Android.setSwipeRefresher(document.querySelector('.n-noteList-Container').scrollTop)");
-                        }
                     }
                 }
             }

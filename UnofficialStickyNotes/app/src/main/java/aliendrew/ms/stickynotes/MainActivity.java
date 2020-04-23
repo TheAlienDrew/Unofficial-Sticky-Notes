@@ -535,7 +535,6 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         // initialize swipe refresh layout, and disable it while first load happens
         swipeRefresher = findViewById(R.id.swipeContainer);
         swipeRefresher.setEnabled(false);
-        theSwipeRefresher = swipeRefresher; // NEEDED FOR ImmersiveAppCompatActivity!
 
         // loading spinners, NO loadURL or javascript toggled css theme classes because they cause flashes
         webLoadingDark = findViewById(R.id.loadingDark);
