@@ -1,8 +1,13 @@
 javascript:(function() {
 
-        // wait for loading animation to disappear before making webView visible (if on sticky notes page)
+        // theme changes based on url
+        var stickyNotesURL = 'www.onenote.com/stickynotes';
         var currentUrl = document.location.host + document.location.pathname;
-        if (currentUrl == 'www.onenote.com/stickynotes') {
+        var themeCss = '*{-webkit-tap-highlight-color:transparent}:focus{outline:0}html{position:fixed;height:100%;width:100%}';
+
+        // wait for loading animation to disappear before making webView visible (if on sticky notes page)
+        if (currentUrl == stickyNotesURL) {
+            themeCss += '#O365_HeaderLeftRegion{display:none}';
             var checkLoading = setInterval(function() {
                 var sidePane = document.querySelector('.n-side-pane-content');
                 var noteListContainer = document.querySelector('.n-noteList-Container');
@@ -12,12 +17,12 @@ javascript:(function() {
 
                     // let page control refresher
                     noteListContainer.addEventListener('scroll', function() {
-                        window.CallToAnAndroidFunction.setSwipeRefresher(noteListContainer.scrollTop);
+                        window.Android.setSwipeRefresher(noteListContainer.scrollTop);
                     }, false);
-                    window.CallToAnAndroidFunction.setSwipeRefresher(noteListContainer.scrollTop);
+                    window.Android.setSwipeRefresher(noteListContainer.scrollTop);
 
                     // set webView to visible
-                    window.CallToAnAndroidFunction.webViewSetVisible();
+                    window.Android.webViewSetVisible();
                 }
             }, 100);
         } else {
@@ -25,18 +30,30 @@ javascript:(function() {
                 if (typeof(document.activeElement) != 'undefined' && document.activeElement != null) {
                     clearInterval(checkLoading);
 
-                    window.CallToAnAndroidFunction.webViewSetVisible();
+                    // the create account link is broken, and needs to be changed
+                    if (currentUrl == 'login.microsoftonline.com/common/oauth2/authorize') {
+                        var signupUrl = 'https://signup.live.com/'
+                        var signupSelector = 'signup';
+                        var signup = document.getElementById(signupSelector);
+
+                        var newSignup = signup.cloneNode(true);
+                        newSignup.href = signupUrl;
+
+                        signup.remove();
+                        document.getElementsByClassName('form-group')[1].appendChild(newSignup);
+                    }
+
+                    window.Android.webViewSetVisible();
                 }
             }, 100);
         }
-
 
         // continue with website related fixes
         var node = document.createElement('style');
 
         node.type = 'text/css';
         // uses only app_conversion.css for mobile view
-        node.innerHTML = '*{-webkit-tap-highlight-color:transparent}:focus{outline:0}html{position:fixed;height:100%;width:100%}#O365_HeaderLeftRegion{display:none}.n-Phone .n-newNoteButtonContainer{width:auto!important;height:auto!important;border-radius:initial!important;-webkit-box-shadow:none!important;box-shadow:none!important;color:auto!important;background:0 0!important;font-weight:400!important;position:static!important;z-index:auto!important;-ms-flex-item-align:auto!important;align-self:auto!important;right:auto!important;bottom:auto!important;margin:0 8px!important}.n-Phone .n-newNoteButtonIcon{display:block!important}.n-Phone .n-newNoteButtonIcon .newNote path{fill:var(--n-ui-icon)!important}';
+        node.innerHTML = themeCss;
 
         document.head.appendChild(node);
 

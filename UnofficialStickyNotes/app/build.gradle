@@ -7,8 +7,8 @@ android {
         applicationId "aliendrew.ms.stickynotes"
         minSdkVersion 21
         targetSdkVersion 29
-        versionCode 39
-        versionName "2.6.2"
+        versionCode 40
+        versionName "2.6.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -22,8 +22,8 @@ android {
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
-    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.0.0'
+    implementation 'androidx.exifinterface:exifinterface:1.3.0-alpha01'
     testImplementation 'junit:junit:4.13'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'

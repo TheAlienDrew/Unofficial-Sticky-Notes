@@ -1,3 +1,5 @@
+/* ALL WEBSITES */
+
 /* Disables weird highlights and outlines
  *
  *
@@ -21,14 +23,17 @@ html {
     width:100%
 }
 
+/* ONLY STICKY NOTES */
+
 /* Disables the applications menu that offers other Microsoft products */
 #O365_HeaderLeftRegion {
 	display: none;
 }
 
 /* the following are to disable the floating add note button, 
-   since it can't be pressed when displayed over notes on Android mobile */
-.n-Phone .n-newNoteButtonContainer {
+   it was disabled when it wasn't working, so I'll leave it here if it
+   ever happens again */
+/* .n-Phone .n-newNoteButtonContainer {
     width: auto !important;
     height: auto !important;
     border-radius: initial !important;
@@ -50,4 +55,4 @@ html {
 }
 .n-Phone .n-newNoteButtonIcon .newNote path {
     fill: var(--n-ui-icon) !important;
-}
+} */

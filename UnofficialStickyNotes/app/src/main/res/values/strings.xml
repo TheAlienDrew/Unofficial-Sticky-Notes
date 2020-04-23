@@ -5,12 +5,13 @@
         \n\nThis app is open-sourced, so if you know how to code and want to help, check out the <a href="https://github.com/TheAlienDrew/Unofficial-Sticky-Notes">Unofficial Sticky Notes GitHub</a> page.
         \n\n<b><u>Features</u>:</b>
         \n<li>Toggle between light, dark, and system themes via the volume keys.</li>
-        \n<li>You can upload images to your notes.</li>
+        \n<li>You can upload/download images to/from your device.</li>
         \n<li>Works offline, but you must sign into it at least once, for the notes to show up on your device.</li>
         \n<li>Pull-to-refresh is enabled within the notes list.</li>
         \n<li>Obviously, no ads whatsoever.</li>
         \n\n<b><u>Noticed Bugs</u>:</b>
-        \n<li>Autocorrect and predictive text features enter text incorrectly, so temporarily they are turned off while using this app. On Gboard, this happens to disable glide typing, while SwiftKey still enables it, BUT if you try to use it, it fails just like the text input bug I was talking about.</li>
+        \n<li>Autocorrect and predictive text features enter text incorrectly, so temporarily they are turned off while using this app. On Gboard, this happens to disable glide typing, while SwiftKey still enables it, BUT if you try to use it, it fails just like the text input bug I was talking about.
+            \nUpdate: Microsoft seems to be slowly trying to fix the keyboard issue. When it\'s fixed I\'ll enable these text features once again.</li>
         \n\n<b><u>Planned Features</u>:</b>
         \n<li>An app menu to change settings (instead of using volume keys + other features I plan to make).</li>
         \n<li>Undo/redo buttons when editing notes, only after enough request for the feature.</li>

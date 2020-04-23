@@ -75,7 +75,7 @@ public abstract class ImmersiveAppCompatActivity extends AppCompatActivity {
                         setToImmersiveMode(true);
                         // conditionally enable swipe to refresh
                         if (theSwipeRefresher != null && theWebView != null) {
-                            theWebView.loadUrl("javascript: window.CallToAnAndroidFunction.setSwipeRefresher(document.querySelector('.n-noteList-Container').scrollTop)");
+                            theWebView.loadUrl("javascript: window.Android.setSwipeRefresher(document.querySelector('.n-noteList-Container').scrollTop)");
                         }
                     }
                 }

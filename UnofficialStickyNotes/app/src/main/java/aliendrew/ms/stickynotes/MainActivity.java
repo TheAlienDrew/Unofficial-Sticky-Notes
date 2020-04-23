@@ -21,6 +21,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.DownloadManager;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -29,8 +30,14 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.drawable.ColorDrawable;
+
+import androidx.exifinterface.media.ExifInterface;
+
+import android.media.MediaScannerConnection;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -47,9 +54,13 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 
+import android.view.Window;
 import android.view.WindowManager;
+import android.webkit.CookieManager;
+import android.webkit.DownloadListener;
 import android.webkit.JavascriptInterface;
 import android.webkit.JsResult;
+import android.webkit.URLUtil;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
@@ -67,8 +78,10 @@ import androidx.core.content.ContextCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -80,7 +93,9 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     // constants
     private static final String STICKY_NOTES_URL = "https://www.onenote.com/stickynotes";
     private static final String APP_VERSION = BuildConfig.VERSION_NAME;
-    private static final String POPUP_TITLE = "Unofficial Sticky Notes v" + APP_VERSION;
+    private static final String APP_NAME = "Unofficial Sticky Notes";
+    private static final String POPUP_TITLE = APP_NAME + " v" + APP_VERSION;
+    private static final String SAVE_DIRECTORY = Environment.DIRECTORY_PICTURES + File.separator + APP_NAME;
 
     // general app controls
     private boolean cacheErrorSent = false;
@@ -95,6 +110,8 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     private String cam_file_data = null;        // for storing camera file information
     private ValueCallback<Uri[]> file_path;     // received file(s) temp. location
     private static final int file_req_code = 1;
+    // file blob converting javascript
+    private static final String blobToBase64 = "javascript: (function() {var reader=new window.FileReader;const convertBlob=function(e){if(null!=e&&null!=e.href&&e.href.startsWith(\"blob\")){var r=e.href;fetch(r).then(e=>e.blob()).then(r=>{reader.readAsDataURL(r),reader.onload=function(r){var t=r.target.result;e.href=t,e.click()}})}};convertBlob(document.querySelector('.n-lightbox-download'));})()";
 
     // use the chosen theme
     private static final String PREFS_NAME = "prefs";
@@ -153,6 +170,31 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         }
     }
 
+    // alert dialog functions to make sure theme is applied
+    @SuppressWarnings("deprecation")
+    private AlertDialog createAlertDialog(Context context) {
+        AlertDialog alertDialog;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (useDarkTheme) alertDialog = new AlertDialog.Builder(context, R.style.AlertDialogDark).create();
+            else alertDialog = new AlertDialog.Builder(context, R.style.AlertDialogLight).create();
+        } else {
+            if (useDarkTheme) alertDialog = new AlertDialog.Builder(context, AlertDialog.THEME_DEVICE_DEFAULT_DARK).create();
+            else alertDialog = new AlertDialog.Builder(context, AlertDialog.THEME_DEVICE_DEFAULT_LIGHT).create();
+        }
+        return alertDialog;
+    }
+    private void alertDialogThemeButtons(Context context, AlertDialog alertDialog) {
+        if (useDarkTheme) {
+            alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(context, R.color.colorAccent));
+            alertDialog.getButton(AlertDialog.BUTTON_NEUTRAL).setTextColor(ContextCompat.getColor(context, R.color.colorAccent));
+            alertDialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(context, R.color.colorAccent));
+        } else {
+            alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(context, R.color.colorAccentDark));
+            alertDialog.getButton(AlertDialog.BUTTON_NEUTRAL).setTextColor(ContextCompat.getColor(context, R.color.colorAccentDark));
+            alertDialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(context, R.color.colorAccentDark));
+        }
+    }
+
     // functions for camera photo and file upload
     // code via https://github.com/mgks/Os-FileUp
     @SuppressWarnings("deprecation")
@@ -162,12 +204,37 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         File storageDir;
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q)
             // TODO: this is only a temp fix for when Android R comes out
-            storageDir = this.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+            storageDir = getApplicationContext().getExternalFilesDir(SAVE_DIRECTORY);
         else
             // TODO: getExternalStoragePublicDirectory only works on Android Q because I've enabled
             //  requestLegacyExternalStorage in the AndroidManifest, otherwise it's deprecated
-            storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+            storageDir = Environment.getExternalStoragePublicDirectory(SAVE_DIRECTORY);
+
+        // need to create the directory if not already there
+        if (storageDir != null && !storageDir.exists()) storageDir.mkdir();
+
         return File.createTempFile(imageFileName,".jpg",storageDir);
+    }
+    public static int getImageOrientation(String imagePath) {
+        int rotate = 0;
+        try {
+            ExifInterface exif = new ExifInterface(imagePath);
+            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+            switch (orientation) {
+                case ExifInterface.ORIENTATION_ROTATE_270:
+                    rotate = 270;
+                    break;
+                case ExifInterface.ORIENTATION_ROTATE_180:
+                    rotate = 180;
+                    break;
+                case ExifInterface.ORIENTATION_ROTATE_90:
+                    rotate = 90;
+                    break;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return rotate;
     }
     @Override
     public void onActivityResult (int requestCode, int resultCode, Intent intent) {
@@ -200,6 +267,25 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 }
 
                 if (clipData == null && stringData == null && cam_file_data != null) {
+                    // Sticky Notes image upload doesn't read Android Exif data on some phones so,
+                    // we have to rotate the image before it gets sent to Microsoft servers
+                    Uri uri = Uri.parse(cam_file_data);
+                    String filePath = uri.toString();
+                    if (uri.getPath() != null) filePath = uri.getPath();
+                    File file = new File(filePath);
+                    int rotation = getImageOrientation(filePath);
+                    Bitmap bitmap = BitmapFactory.decodeFile(filePath);
+                    Matrix m = new Matrix();
+                    m.postRotate(rotation);
+                    bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(),
+                            bitmap.getHeight(), m, true);
+
+                    try (FileOutputStream out = new FileOutputStream(file)) {
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
                     results = new Uri[]{Uri.parse(cam_file_data)};
                 } else {
                     if (clipData != null) { // checking if multiple files selected or not
@@ -214,6 +300,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 }
             }
         }
+
         file_path.onReceiveValue(results);
         file_path = null;
     }
@@ -286,14 +373,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 return;
             }
 
-            final AlertDialog alertDialog;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (useDarkTheme) alertDialog = new AlertDialog.Builder(MainActivity.this, R.style.AlertDialogDark).create();
-                else alertDialog = new AlertDialog.Builder(MainActivity.this, R.style.AlertDialogLight).create();
-            } else {
-                if (useDarkTheme) alertDialog = new AlertDialog.Builder(MainActivity.this, AlertDialog.THEME_DEVICE_DEFAULT_DARK).create();
-                else alertDialog = new AlertDialog.Builder(MainActivity.this, AlertDialog.THEME_DEVICE_DEFAULT_LIGHT).create();
-            }
+            final AlertDialog alertDialog = createAlertDialog(MainActivity.this);
             alertDialog.setCanceledOnTouchOutside(false);
             alertDialog.setTitle("Error, data not cached");
             alertDialog.setMessage("Check your internet connection and try again.");
@@ -312,13 +392,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
                 @Override
                 public void onShow(DialogInterface arg0) {
-                    if (useDarkTheme) {
-                        alertDialog.getButton(AlertDialog.BUTTON_NEUTRAL).setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorAccent));
-                        alertDialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorAccent));
-                    } else {
-                        alertDialog.getButton(AlertDialog.BUTTON_NEUTRAL).setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorAccentDark));
-                        alertDialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorAccentDark));
-                    }
+                    alertDialogThemeButtons(MainActivity.this, alertDialog);
                 }
             });
             Objects.requireNonNull(alertDialog.getWindow()).getAttributes().verticalMargin = 0.3F;
@@ -345,6 +419,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                     || url.startsWith("https://www.onenote.com/common1pauth/msaimplicitauthcallback?redirectUrl=https%3a%2f%2fwww.onenote.com%2fstickynotes")
                     || url.startsWith("https://login.live.com/logout.srf")
                     || url.startsWith("https://www.onenote.com/common1pauth/signout?redirectUrl=https%3A%2F%2Fwww.onenote.com%2Fcommon1pauth%2Fsignin%3FredirectUrl%3Dhttps%253A%252F%252Fwww.onenote.com%252Fstickynotes")
+                    || url.startsWith("https://account.live.com/password/reset?wreply=https%3a%2f%2flogin.microsoftonline.com%2fcommon%2freprocess")
                     || (url.startsWith("https://www.onenote.com/common1pauth/exchangecode") && !url.endsWith("?error=msa_signup"));
         }
         @SuppressWarnings("deprecation")
@@ -460,7 +535,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         // initialize swipe refresh layout, and disable it while first load happens
         swipeRefresher = findViewById(R.id.swipeContainer);
         swipeRefresher.setEnabled(false);
-        theSwipeRefresher = swipeRefresher;
+        theSwipeRefresher = swipeRefresher; // NEEDED FOR ImmersiveAppCompatActivity!
 
         // loading spinners, NO loadURL or javascript toggled css theme classes because they cause flashes
         webLoadingDark = findViewById(R.id.loadingDark);
@@ -472,8 +547,9 @@ public class MainActivity extends ImmersiveAppCompatActivity {
 
         // initialize primary webView
         webStickies = findViewById(R.id.webView);
-        theWebView = webStickies;
-        WebSettings webSettings = webStickies.getSettings();
+        theWebView = webStickies; // NEEDED FOR ImmersiveAppCompatActivity!
+        final WebSettings webSettings = webStickies.getSettings();
+        //WebView.setWebContentsDebuggingEnabled(true); // TODO: turn off before official builds
 
         if (useDarkTheme) {
             swipeRefresher.setColorSchemeResources(R.color.colorAccent);
@@ -488,6 +564,79 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         // set website clients
         webStickies.setWebChromeClient(new ChromeClient());
         webStickies.setWebViewClient(new ViewClient());
+        // allow webView to download
+        webStickies.setDownloadListener(new DownloadListener() {
+            @SuppressWarnings("deprecation")
+            public void onDownloadStart(String url, String userAgent,
+                                        String contentDisposition, String mimeType,
+                                        long contentLength) {
+                if (file_permission())
+                {
+                    if (url.startsWith("blob:")) { // encode blob into base64
+                        webStickies.loadUrl(blobToBase64);
+                        return;
+                    } else if (url.startsWith("data:")) { // decode base64 to file
+                        File path;
+                        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) // TODO: SAME FIX ME TOO WHEN R COMES OUT
+                            path = getApplicationContext().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+                        else
+                            path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                        String filetype = url.substring(url.indexOf("/") + 1, url.indexOf(";"));
+                        String filename = System.currentTimeMillis() + "." + (filetype.equals("jpeg") ? "jpg" : filetype);
+                        File file = new File(path, filename);
+                        Toast.makeText(getApplicationContext(), "Downloading \"" + filename + "\" ...", Toast.LENGTH_LONG).show();
+                        try {
+                            if (path != null && !path.exists())
+                                path.mkdirs();
+                            if(!file.exists())
+                                file.createNewFile();
+
+                            String base64EncodedString = url.substring(url.indexOf(",") + 1);
+                            byte[] decodedBytes = Base64.decode(base64EncodedString, Base64.DEFAULT);
+                            OutputStream os = new FileOutputStream(file);
+                            os.write(decodedBytes);
+                            os.close();
+
+                            // Tell the media scanner about the new file so that it is immediately available to the user.
+                            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                                MediaScannerConnection.scanFile(getApplicationContext(),
+                                        new String[]{file.toString()}, null,
+                                        new MediaScannerConnection.OnScanCompletedListener() {
+                                            public void onScanCompleted(String path, Uri uri) {
+                                                Log.i("ExternalStorage", "Scanned " + path + ":");
+                                                Log.i("ExternalStorage", "-> uri=" + uri);
+                                            }
+                                        });
+                            }
+
+                            Toast.makeText(getApplicationContext(), "Download succeeded!", Toast.LENGTH_LONG).show();
+                        } catch (IOException e) {
+                            Toast.makeText(getApplicationContext(), "Download failed!", Toast.LENGTH_LONG).show();
+                        }
+                        return;
+                    }
+
+                    String filename = URLUtil.guessFileName(url, contentDisposition, mimeType);
+                    DownloadManager.Request request = new DownloadManager.Request(
+                            Uri.parse(url));
+                    request.setMimeType(mimeType);
+                    String cookies = CookieManager.getInstance().getCookie(url);
+                    request.addRequestHeader("cookie", cookies);
+                    request.addRequestHeader("User-Agent", userAgent);
+                    request.setDescription("Downloading \"" + filename + "\" ...");
+                    request.setTitle(filename);
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) request.allowScanningByMediaScanner();
+                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                    request.setDestinationInExternalPublicDir(
+                            Environment.DIRECTORY_DOWNLOADS, filename);
+                    DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                    if (dm != null) {
+                        dm.enqueue(request);
+                        Toast.makeText(getApplicationContext(), "Download succeeded!", Toast.LENGTH_LONG).show();
+                    } else Toast.makeText(getApplicationContext(), "Download failed!", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
         // allows for caching the website when using it offline
         webSettings.setAppCachePath(getApplicationContext().getCacheDir().getAbsolutePath());
         webSettings.setAllowFileAccess(true);
@@ -499,13 +648,12 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         webSettings.setDatabaseEnabled(true);
         webSettings.setLoadsImagesAutomatically(true);
         webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-        webStickies.addJavascriptInterface(new myJavaScriptInterface(), "CallToAnAndroidFunction");
+        webStickies.addJavascriptInterface(new JavaScriptInterface(), "Android");
         // visual fixes
         webStickies.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
         webStickies.setVerticalScrollBarEnabled(false);
         webStickies.setHorizontalScrollBarEnabled(false);
         // TODO: testing... need to get 'no extension' (dynamic) images to load
-        //WebView.setWebContentsDebuggingEnabled(true); // TODO: allow debugging
 
         // start the webView
         internetCacheLoad(webStickies, STICKY_NOTES_URL);
@@ -526,7 +674,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         // show popup if updated or first time install
         if (updatedToNewVersion) {
             Dialog dialog;
-            int dialogBg, linkColor, closePopupBtnBg;
+            int dialogBg, linkColor;
             if (useDarkTheme) {
                 dialog = new Dialog(this,R.style.PopupDialogDark);
                 dialogBg = R.drawable.popup_bg_dark;
@@ -652,7 +800,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         internetCacheLoad(webStickies, null);
     }
 
-    class myJavaScriptInterface {
+    class JavaScriptInterface {
         // used to enable webView after fully loaded theme
         @JavascriptInterface
         public void webViewSetVisible() {
@@ -668,7 +816,8 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                     }
                     if (updatedToNewVersion) {
                         popupDialog.show();
-                        Objects.requireNonNull(popupDialog.getWindow()).setAttributes(popupLayoutParams);
+                        Window popupWindow = popupDialog.getWindow();
+                        if (popupWindow != null) popupWindow.setAttributes(popupLayoutParams);
                     }
                 }
             });

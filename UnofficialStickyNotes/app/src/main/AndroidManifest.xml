@@ -9,8 +9,6 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <!-- read/write external storage is needed for saving/uploading camera-taken photos (Android Q and below) -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <!-- just used for visual layout of app -->
-    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
 
     <!-- Might not need supportsRtl since the webView may or may not need it (language text formatting) -->
     <!-- Additionally, usesCleartextTraffic might not be needed if I remove -->
