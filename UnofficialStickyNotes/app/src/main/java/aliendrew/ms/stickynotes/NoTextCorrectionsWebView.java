@@ -25,9 +25,9 @@ public class NoTextCorrectionsWebView extends WebView {
     public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
         InputConnection ic = super.onCreateInputConnection(outAttrs);
 
-        // VISIBLE_PASSWORD type prevents dynamic changes while still typing
-        // NO_SUGGESTIONS disables suggestions for most keyboards
-        outAttrs.inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
+        outAttrs.inputType &= ~EditorInfo.TYPE_MASK_VARIATION; // clear VARIATION type to be able to set new value
+        outAttrs.inputType |= InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD; // VISIBLE_PASSWORD type will prevent predictive text
+        outAttrs.inputType = outAttrs.inputType | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS; // this part will prevent form suggestions
 
         return ic;
     }
