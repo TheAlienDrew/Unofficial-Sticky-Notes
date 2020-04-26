@@ -9,8 +9,6 @@ import android.webkit.WebView;
 
 public class NoTextCorrectionsWebView extends WebView {
 
-    private static int reloaded = 0;
-
     public NoTextCorrectionsWebView(Context context) {
         super(context);
     }

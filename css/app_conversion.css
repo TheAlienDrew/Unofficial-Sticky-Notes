@@ -9,7 +9,7 @@
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);	
 }
 *:focus {
-	outline: none
+	outline: none!important
 }
 
 /* Fixes weird scrolling that shouldn't happen
@@ -27,7 +27,12 @@ html {
 
 /* Disables the applications menu that offers other Microsoft products */
 #O365_HeaderLeftRegion {
-	display: none;
+	display: none
+}
+
+/* Make the note fill up full phone space when editing */
+.n-Phone .n-noteFocus {
+    margin: 0 0
 }
 
 /* the following are to disable the floating add note button, 
@@ -48,11 +53,11 @@ html {
     align-self: auto !important;
     right: auto !important;
     bottom: auto !important;
-    margin: 0 8px !important;
+    margin: 0 8px !important
 }
 .n-Phone .n-newNoteButtonIcon {
-    display: block !important;
+    display: block !important
 }
 .n-Phone .n-newNoteButtonIcon .newNote path {
-    fill: var(--n-ui-icon) !important;
+    fill: var(--n-ui-icon) !important
 } */

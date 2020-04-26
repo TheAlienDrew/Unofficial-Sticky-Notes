@@ -9,7 +9,6 @@ import android.view.ViewTreeObserver;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import java.lang.ref.WeakReference;
 
@@ -17,6 +16,7 @@ public abstract class ImmersiveAppCompatActivity extends AppCompatActivity {
     private HideHandler mHideHandler;
 
     private static boolean softKeyboardOpen = false;
+    public static boolean keepNavBar = false;
     public NoTextCorrectionsWebView theWebView;
 
     public static boolean keyboardVisible() {
@@ -91,7 +91,7 @@ public abstract class ImmersiveAppCompatActivity extends AppCompatActivity {
 
     public void setToImmersiveMode(boolean choice) {
         // set to immersive but also allow resizing of window when keyboard is out
-        if (choice) {
+        if (choice && !keepNavBar) { // we are going FULL immersive
             getWindow().getDecorView().setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                             | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
@@ -99,11 +99,15 @@ public abstract class ImmersiveAppCompatActivity extends AppCompatActivity {
                             | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                             | View.SYSTEM_UI_FLAG_FULLSCREEN
                             | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        } else {
+        } else if (!choice) { // we are not going immersive
             getWindow().getDecorView().setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                             | View.SYSTEM_UI_FLAG_FULLSCREEN
                             | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        } else { // we are going PARTIAL immersive, but keeping nav bar open
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_FULLSCREEN);
         }
     }
 

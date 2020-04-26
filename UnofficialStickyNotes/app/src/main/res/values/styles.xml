@@ -3,12 +3,9 @@
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
-        <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorDarkPrimaryLight</item>
         <item name="colorPrimaryDark">@color/colorDarkPrimary</item>
         <item name="colorAccent">@color/colorAccent</item>
-
-        <!-- this is an edit -->
         <item name="android:windowBackground">@color/ic_launcher_background</item>
         <item name="android:navigationBarColor">@color/ic_launcher_void</item>
     </style>

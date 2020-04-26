@@ -8,6 +8,8 @@ package aliendrew.ms.stickynotes;
 // Since Android KitKat (APIs 19) doesn't have a separate Android System WebView app that can be
 //   updated, the CSS4 code being used on https://onenote.com/stickynotes will not work. More
 //   specifically https://caniuse.com/#feat=css-variables&compare=android+4.4.3-4.4.4
+// All deprecations that you might see in the build log are all taken care of, and shouldn't
+//   interfere with the newer versions of Android that don't support them.
 //
 // TODO: Microsoft uses an older version of DraftJS on Sticky Notes that wasn't compatible
 //   with Android, and I'm not sure how to fix so it's using the latest version. So, for now, text
@@ -47,6 +49,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.util.Base64;
 import android.util.DisplayMetrics;
@@ -82,28 +85,52 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
 
-// TODO: AND THEN FIX SCROLLBAR COLOR FOR POPUP after all is done, update graphics
-
 public class MainActivity extends ImmersiveAppCompatActivity {
     // constants
     private static final String STICKY_NOTES_URL = "https://www.onenote.com/stickynotes";
+    private static final String STICKY_HELP_URL_START = "https://support.office.com/client/results";
+    //                          STICKY_HELP_URL_START: normally this host + path is for any MS app, but in our case, it'll only lead to the Sticky Notes help page
     private static final String APP_VERSION = BuildConfig.VERSION_NAME;
     private static final String APP_NAME = "Unofficial Sticky Notes";
     private static final String POPUP_TITLE = APP_NAME + " v" + APP_VERSION;
     private static final String SAVE_DIRECTORY = Environment.DIRECTORY_PICTURES + File.separator + APP_NAME;
+    // user locale
+    private final Locale USER_LOCALE = Locale.getDefault();
+    private final String USER_LANGUAGE = USER_LOCALE.getLanguage();
+    private final String USER_COUNTRY = USER_LOCALE.getCountry();
+    private final String URL_LOCALE = (TextUtils.isEmpty(USER_LANGUAGE) ? "en" : USER_LANGUAGE) + '-' + (TextUtils.isEmpty(USER_COUNTRY) ? "US" : USER_COUNTRY);
+    // help page related
+    private static final String STICKY_HELP_URL_P1 = "https://support.office.com/client/results?NS=stickynotes&Context=%7B%22ThemeId%22:";
+    private static final String DARK_STICKY_HELP_THEME_ID = "4";
+    private static final String LIGHT_STICKY_HELP_THEME_ID = "6";
+    private static final String STICKY_HELP_URL_P2 = ",%22LinkColor%22:%22";
+    private static final String DARK_STICKY_HELP_LINK_COLOR = "B3D6FC";
+    private static final String LIGHT_STICKY_HELP_LINK_COLOR = "106EBE";
+    private static final String STICKY_HELP_URL_P3 = "%22,%22IsWebShell%22:true,%22Domain%22:%22www.onenote.com%22%7D&Locale=";
+    private static final String STICKY_HELP_URL_P4 = "&ShowNav=true&Version=16&omkt=";
+    private static final String STICKY_HELP_URL_P5 = "&origin=https://www.onenote.com&feedback=0&moveSupportCard=0";
+    // simplified
+    private final String BOTH_STICKY_HELP_URL_END = URL_LOCALE + STICKY_HELP_URL_P4 + URL_LOCALE + STICKY_HELP_URL_P5;
+    private final String DARK_STICKY_HELP_URL = STICKY_HELP_URL_P1 + DARK_STICKY_HELP_THEME_ID + STICKY_HELP_URL_P2 + DARK_STICKY_HELP_LINK_COLOR + STICKY_HELP_URL_P3 + BOTH_STICKY_HELP_URL_END;
+    private final String LIGHT_STICKY_HELP_URL = STICKY_HELP_URL_P1 + LIGHT_STICKY_HELP_THEME_ID + STICKY_HELP_URL_P2 + LIGHT_STICKY_HELP_LINK_COLOR + STICKY_HELP_URL_P3 + BOTH_STICKY_HELP_URL_END;
 
     // general app controls
-    private boolean cacheErrorSent = false;
-    private boolean appLaunched = true;
-    private boolean disableReloading = true;
-    private boolean singleBack = false;
+    private static final String PREFS_NAME = "prefs";
     private ImageView splashImage;
     private SwipeRefreshLayout swipeRefresher;
+    private boolean appLaunched = true;
+    private boolean cacheErrorSent = false;
+    private boolean disableReloading = true;
+    private boolean singleBack = false;
+    private boolean closeButtonActive = false;
+    private String closeButtonSelector = null;
 
     // file upload initialize
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -114,7 +141,6 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     private static final String blobToBase64 = "javascript: (function() {var reader=new window.FileReader;const convertBlob=function(e){if(null!=e&&null!=e.href&&e.href.startsWith(\"blob\")){var r=e.href;fetch(r).then(e=>e.blob()).then(r=>{reader.readAsDataURL(r),reader.onload=function(r){var t=r.target.result;e.href=t,e.click()}})}};convertBlob(document.querySelector('.n-lightbox-download'));})()";
 
     // use the chosen theme
-    private static final String PREFS_NAME = "prefs";
     private static final String PREF_THEME = "theme";
     private boolean useSystemTheme = false;
     private boolean useDarkTheme = false;
@@ -125,6 +151,11 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     private static final String PREF_VERSION_USED = "version_used";
     private boolean updatedToNewVersion = false;
 
+    // webView variables
+    private WebView webLoadingDark;
+    private WebView webLoadingLight;
+    private NoTextCorrectionsWebView webStickies;
+
     // check system theme
     private boolean isSystemDark() {
         return ((getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
@@ -132,14 +163,12 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     }
 
     // function to see if we're online
-    @SuppressWarnings("deprecation")
     public static boolean isNetworkAvailable(Context context) {
         ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (cm == null) return false;
         boolean isConnected = false;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // reprogram
             Network[] networks = cm.getAllNetworks();
             if(networks.length>0){
                 for(Network network :networks){
@@ -155,11 +184,6 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         return isConnected;
     }
 
-    // webView variables
-    private WebView webLoadingDark;
-    private WebView webLoadingLight;
-    private NoTextCorrectionsWebView webStickies;
-
     // functions for permissions
     public boolean file_permission(){
         if (Build.VERSION.SDK_INT >=23 && (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)) {
@@ -171,7 +195,6 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     }
 
     // alert dialog functions to make sure theme is applied
-    @SuppressWarnings("deprecation")
     private AlertDialog createAlertDialog(Context context) {
         AlertDialog alertDialog;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -197,7 +220,6 @@ public class MainActivity extends ImmersiveAppCompatActivity {
 
     // functions for camera photo and file upload
     // code via https://github.com/mgks/Os-FileUp
-    @SuppressWarnings("deprecation")
     private File create_image() throws IOException{
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         String imageFileName = "img_"+timeStamp+"_";
@@ -211,7 +233,8 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             storageDir = Environment.getExternalStoragePublicDirectory(SAVE_DIRECTORY);
 
         // need to create the directory if not already there
-        if (storageDir != null && !storageDir.exists()) storageDir.mkdir();
+        if (storageDir != null && !storageDir.exists()) //noinspection ResultOfMethodCallIgnored
+            storageDir.mkdir();
 
         return File.createTempFile(imageFileName,".jpg",storageDir);
     }
@@ -353,12 +376,22 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         // allow JS alert dialogs
         @Override
         public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
-            return super.onJsAlert(view, url, message, result);
+            // modified to not show website url
+            AlertDialog.Builder builder = new AlertDialog.Builder(
+                    MainActivity.this);
+            builder.setMessage(message)
+                    .setNeutralButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface arg0, int arg1) {
+                            arg0.dismiss();
+                        }
+                    }).show();
+            result.cancel();
+            return true;
         }
     }
     public class ViewClient extends WebViewClient {
         // INTERNET FAIL DETECTION block
-        @SuppressWarnings("deprecation")
         @Override
         public void onReceivedError(final WebView view, int errorCode, String description, String failingUrl) {
             super.onReceivedError(view, errorCode, description, failingUrl);
@@ -369,9 +402,19 @@ public class MainActivity extends ImmersiveAppCompatActivity {
 
             // is page history back is possible, exit from here
             if (view.canGoBack()) {
+                // if we are on the help page, send a toast that the user needs to view that page
+                //   online first for it to work offline
+                if (failingUrl.startsWith(STICKY_HELP_URL_START))
+                    Toast.makeText(MainActivity.this,
+                            "You must visit the Help website once online, before you can use it offline.",
+                            Toast.LENGTH_LONG).show();
+
                 view.goBack();
                 return;
             }
+
+            // couldn't go back so, there is no page, must hide webView
+            view.setVisibility(View.INVISIBLE);
 
             final AlertDialog alertDialog = createAlertDialog(MainActivity.this);
             alertDialog.setCanceledOnTouchOutside(false);
@@ -395,7 +438,6 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                     alertDialogThemeButtons(MainActivity.this, alertDialog);
                 }
             });
-            Objects.requireNonNull(alertDialog.getWindow()).getAttributes().verticalMargin = 0.3F;
 
             view.setVisibility(View.INVISIBLE);
             alertDialog.show();
@@ -409,8 +451,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
 
         // LINKS OPEN AS EXTERNAL block
         private boolean checkLink(String url) {
-            return url.startsWith("https://www.onenote.com/stickynotes")
-                    || url.startsWith("https://storage.live.com/mydata/myprofile/expressionprofile/profilephoto")
+            return url.startsWith(STICKY_NOTES_URL)
                     || url.startsWith("https://www.onenote.com/common1pauth/signin?redirectUrl=https%3A%2F%2Fwww.onenote.com%2Fstickynotes")
                     || url.startsWith("https://login.windows.net/common/oauth2/authorize")
                     || url.startsWith("https://login.microsoftonline.com/common/oauth2/authorize")
@@ -420,9 +461,8 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                     || url.startsWith("https://login.live.com/logout.srf")
                     || url.startsWith("https://www.onenote.com/common1pauth/signout?redirectUrl=https%3A%2F%2Fwww.onenote.com%2Fcommon1pauth%2Fsignin%3FredirectUrl%3Dhttps%253A%252F%252Fwww.onenote.com%252Fstickynotes")
                     || url.startsWith("https://account.live.com/password/reset?wreply=https%3a%2f%2flogin.microsoftonline.com%2fcommon%2freprocess")
-                    || (url.startsWith("https://www.onenote.com/common1pauth/exchangecode") && !url.endsWith("?error=msa_signup"));
+                    || url.startsWith("https://www.onenote.com/common1pauth/exchangecode");
         }
-        @SuppressWarnings("deprecation")
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             // open in webView
@@ -460,13 +500,24 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
 
-            // light theme is the Microsoft default
-            if (useDarkTheme) injectScriptFile(view, "js/dark_theme.js");
+            // Don't load themes/don't allow swipe on the help page, as it's already themed/doesn't need reload
+            if (url.startsWith(STICKY_HELP_URL_START)) {
+                // fix scaling/note boxes backgrounds (Microsoft theming errors)
+                injectScriptFile(view, "js/help_fixes.js");
+                // swipe to refresh is disabled so users can scroll the help page
+                swipeRefresher.setEnabled(false);
+                swipeRefresher.setRefreshing(false);
+                view.setVisibility(View.VISIBLE);
+            } else {
+                // light theme is the Microsoft default
+                if (useDarkTheme) injectScriptFile(view, "js/dark_theme.js");
 
-            // make the website compatible with Android webView
-            injectScriptFile(view, "js/webView_convert.js");
+                // make the website compatible with Android webView
+                injectScriptFile(view, "js/webView_convert.js");
 
-            // visibility is handled in webView_convert.js
+                // visibility + swipe is handled in webView_convert.js for Sticky Notes and login
+            }
+
             disableReloading = false;
         }
 
@@ -482,14 +533,14 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 // String-ify the script byte-array using BASE64 encoding !!!
                 String encoded = Base64.encodeToString(buffer, Base64.NO_WRAP);
                 //noinspection SpellCheckingInspection
-                view.loadUrl("javascript:(function() {" +
+                view.evaluateJavascript("javascript:(function() {" +
                         "var parent = document.getElementsByTagName('head').item(0);" +
                         "var script = document.createElement('script');" +
                         "script.type = 'text/javascript';" +
                         // Tell the browser to BASE64-decode the string into your script !!!
                         "script.innerHTML = window.atob('" + encoded + "');" +
                         "parent.appendChild(script)" +
-                        "})()");
+                        "})()", null);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -504,8 +555,23 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             view.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
         }
 
-        if (url != null && url.length() > 0) view.loadUrl(url);
-        else view.reload();
+        if (url != null) {
+            keepNavBar = url.startsWith(STICKY_HELP_URL_START);
+
+            setToImmersiveMode(true);
+
+            if (url.length() > 0) view.loadUrl(url);
+        } else {
+            if (view.getUrl().startsWith(STICKY_HELP_URL_START)) {
+                keepNavBar = true;
+                if (useDarkTheme) url = DARK_STICKY_HELP_URL;
+                else url = LIGHT_STICKY_HELP_URL;
+                view.loadUrl(url);
+            } else {
+                keepNavBar = false;
+                view.reload();
+            }
+        }
     }
 
     @SuppressLint({"SetJavaScriptEnabled", "JavascriptInterface"})
@@ -565,14 +631,13 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         webStickies.setWebViewClient(new ViewClient());
         // allow webView to download
         webStickies.setDownloadListener(new DownloadListener() {
-            @SuppressWarnings("deprecation")
             public void onDownloadStart(String url, String userAgent,
                                         String contentDisposition, String mimeType,
                                         long contentLength) {
                 if (file_permission())
                 {
                     if (url.startsWith("blob:")) { // encode blob into base64
-                        webStickies.loadUrl(blobToBase64);
+                        webStickies.evaluateJavascript(blobToBase64, null);
                         return;
                     } else if (url.startsWith("data:")) { // decode base64 to file
                         File path;
@@ -585,9 +650,9 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                         File file = new File(path, filename);
                         Toast.makeText(getApplicationContext(), "Downloading \"" + filename + "\" ...", Toast.LENGTH_LONG).show();
                         try {
-                            if (path != null && !path.exists())
+                            if (path != null && !path.exists()) //noinspection ResultOfMethodCallIgnored
                                 path.mkdirs();
-                            if(!file.exists())
+                            if (!file.exists()) //noinspection ResultOfMethodCallIgnored
                                 file.createNewFile();
 
                             String base64EncodedString = url.substring(url.indexOf(",") + 1);
@@ -647,7 +712,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         webSettings.setDatabaseEnabled(true);
         webSettings.setLoadsImagesAutomatically(true);
         webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-        webStickies.addJavascriptInterface(new JavaScriptInterface(), "Android");
+        webStickies.addJavascriptInterface(new StickiesJS(), "Android");
         // visual fixes
         webStickies.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
         webStickies.setVerticalScrollBarEnabled(false);
@@ -722,12 +787,39 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
+
+            // different actions for other pages
+            URL currentUrl;
+            try {
+                currentUrl = new URL(webStickies.getUrl());
+                String currentHost = currentUrl.getHost();
+                String topUrl = currentHost.substring(0, currentHost.indexOf('.'));
+                // if the page is at the login screen, allow go back
+                // if it's on the help page, go back to notes
+                if ((topUrl.equals("login")) && webStickies.canGoBack()) {
+                    webStickies.goBack();
+                    return true;
+                } else if (currentUrl.toString().startsWith(STICKY_HELP_URL_START)) {
+                    internetCacheLoad(webStickies, STICKY_NOTES_URL);
+                    return true;
+                }
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+
+            // if there is an active close button in sticky notes, click it
+            if (closeButtonActive) {
+                webStickies.evaluateJavascript("javascript: document.querySelector('"+closeButtonSelector+"').click()", null);
+                return true;
+            }
+
             // must press back twice within 2 seconds to exit app
             if (singleBack) {
                 super.onBackPressed();
                 return true;
             }
-            this.singleBack = true;
+            singleBack = true;
             Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
             new Handler().postDelayed(new Runnable() {
                 @Override
@@ -799,7 +891,13 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         internetCacheLoad(webStickies, null);
     }
 
-    class JavaScriptInterface {
+    class StickiesJS {
+        // check if it's dark theme for javascript
+        @JavascriptInterface
+        public boolean isDarkMode() {
+            return useDarkTheme;
+        }
+
         // used to enable webView after fully loaded theme
         @JavascriptInterface
         public void webViewSetVisible() {
@@ -821,6 +919,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 }
             });
         }
+
         // soft keyboard open or being at anywhere but the top of the page will disable swipe to refresh
         @JavascriptInterface
         public void setSwipeRefresher(final int scrollTop) {
@@ -834,6 +933,32 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                         swipeRefresher.setEnabled(false);
                         swipeRefresher.setRefreshing(false);
                     }
+                }
+            });
+        }
+
+        // updates variable that knows if there is an available close button on screen
+        @JavascriptInterface
+        public void setCloseAvailable(final boolean availability, final String elementToClick) {
+            closeButtonActive = availability;
+            closeButtonSelector = elementToClick;
+        }
+
+        // loads the specific theme url
+        @JavascriptInterface
+        public String getHelpUrl() {
+            if (useDarkTheme) return DARK_STICKY_HELP_URL;
+            else return LIGHT_STICKY_HELP_URL;
+        }
+
+        // load help in fullscreen
+        @JavascriptInterface
+        public void loadStickiesHelp() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    webStickies.setVisibility(View.INVISIBLE);
+                    internetCacheLoad(webStickies, (useDarkTheme ? DARK_STICKY_HELP_URL : LIGHT_STICKY_HELP_URL));
                 }
             });
         }

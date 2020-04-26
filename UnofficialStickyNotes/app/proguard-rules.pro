@@ -8,14 +8,14 @@
 # If your project uses WebView with JS, uncomment the following
 # and specify the fully qualified class name to the JavaScript interface
 # class:
--keepclassmembers class aliendrew.ms.stickynotes.MainActivity$myJavaScriptInterface {
+-keepclassmembers class aliendrew.ms.stickynotes.MainActivity$StickiesJS {
    public *;
 }
 
 # Uncomment this to preserve the line number information for
 # debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+-keepattributes SourceFile,LineNumberTable
 
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
-#-renamesourcefileattribute SourceFile
+-renamesourcefileattribute SourceFile

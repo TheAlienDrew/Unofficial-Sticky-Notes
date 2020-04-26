@@ -1,19 +1,57 @@
 javascript:(function() {
 
+        // constants
+        const stickyNotesURL = 'www.onenote.com/stickynotes'
+        const signUpURL = 'https://signup.live.com/';
+        const loginURL = 'login.microsoftonline.com/common/oauth2/authorize';
+        const disableSwipe = 1;
+        const slowDelay = 1000;
+        const fastDelay = 100;
+        // constant selectors
+        const sidePaneSelector = '.n-side-pane-content';
+        const flexPaneCloseButtonSelector = '#flexPaneCloseButton';
+        const lightBoxCloseSelector = '.n-lightbox-close';
+        const warningCancelSelector = '.n-warningCancel';
+        const imageAltTextCancelSelector = '.n-imageAltTextCancel';
+        const noteEditCloseButtonSelector = '.n-noteEdit-closeButton';
+        const noteSelector = '.n-note';
+        const noteListContainerSelector = '.n-noteList-Container';
+        const noteListSelector = '.n-noteList';
+        const notePreviewSelector = 'n-noteList-notePreviewWrapper';
+        const helpPaneSelector = '#helpPaneFull'; // TODO: Disabled since we load the help into the webView
+        const helpButtonSelector = '#O365_MainLink_Help_container';
         // theme changes based on url
-        var stickyNotesURL = 'www.onenote.com/stickynotes';
-        var currentUrl = document.location.host + document.location.pathname;
-        var themeCss = '*{-webkit-tap-highlight-color:transparent}:focus{outline:0}html{position:fixed;height:100%;width:100%}';
+        var currentURL = document.location.host + document.location.pathname;
+        var themeCss = '*{-webkit-tap-highlight-color:transparent}:focus{outline:0!important}html{position:fixed;height:100%;width:100%}'; // see app_conversion.css
+        // function for elements
+        function elementExists(element) {
+            return (typeof(element) != 'undefined' && element != null);
+        }
 
         // wait for loading animation to disappear before making webView visible (if on sticky notes page)
-        if (currentUrl == stickyNotesURL) {
-            themeCss += '#O365_HeaderLeftRegion{display:none}';
+        if (currentURL == stickyNotesURL) {
+            themeCss += '#O365_HeaderLeftRegion{display:none}.n-Phone .n-noteFocus{margin:0 0}';
             var checkLoading = setInterval(function() {
-                var sidePane = document.querySelector('.n-side-pane-content');
-                var noteListContainer = document.querySelector('.n-noteList-Container');
-                var noteList = document.querySelector('.n-noteList');
-                if(typeof(noteList) != 'undefined' && noteList != null && sidePane.childElementCount == 2) {
+                var sidePane = document.querySelector(sidePaneSelector);
+                var noteListContainer = document.querySelector(noteListContainerSelector);
+                var noteList = document.querySelector(noteListSelector);
+                var notePreview = document.getElementsByClassName(notePreviewSelector);
+                var helpPaneExists = false;
+                var closeButtonActive = false;
+                if(elementExists(noteList) && sidePane.childElementCount == 2) {
                     clearInterval(checkLoading);
+
+                    // change help to open in the webView
+                    var waitForHelp = setInterval(function() {
+                        var helpButton = document.querySelector(helpButtonSelector);
+                        if (elementExists(helpButton)) {
+                            clearInterval(waitForHelp);
+
+                            helpButton.onclick = function () {
+                                window.Android.loadStickiesHelp();
+                            };
+                        }
+                    }, fastDelay);
 
                     // scrolling note list checks swipe
                     noteListContainer.addEventListener('touchmove', function(e) {
@@ -23,60 +61,136 @@ javascript:(function() {
                     noteListContainer.addEventListener('touchstart', function(e) {
                         window.Android.setSwipeRefresher(noteListContainer.scrollTop);
                     }, false);
-                    // must stop the scroll-to-refresh when opening up a note/image
-                    var clickableListNotes = document.getElementsByClassName('n-noteList-notePreviewWrapper');
-                    var currentNote = document.querySelector('.n-noteEditViewContainer');
                     // after clicking a note in list, disable swipe
                     setInterval(function() {
                         var i;
-                        for (i = 0; i < clickableListNotes.length; ++i) {
-                            clickableListNotes[i].onclick = function () {
-                                window.Android.setSwipeRefresher(1); // disables swipe
+                        for (i = 0; i < notePreview.length; ++i) {
+                            // needs to always check
+
+                            notePreview[i].onclick = function () {
+                                window.Android.setSwipeRefresher(disableSwipe);
                             };
                         }
-                    }, 100);
-                    // disable swipe while editing a note
-                    currentNote.onclick = function () {
-                        // check classlist for inactivity
-                        if (!currentNote.classList.contains('inactive')) {
-                            window.Android.setSwipeRefresher(1);
-                        };
+                    }, slowDelay);
+                    // disable swipe if help pane is open // TODO: This is a fall back if the help page doesn't load into the webView
+                    setInterval(function() {
+                        var helpPane = document.querySelector(helpPaneSelector);
+                        if (elementExists(helpPane) && !helpPaneExists) {
+                            // needs to always check
+
+                            window.Android.setSwipeRefresher(disableSwipe);
+                            helpPane.style = "filter:invert(100%)";
+                            helpPaneExists = true;
+                        } else helpPaneExists = false;
+                    }, slowDelay);
+                    // disable swipe while editing a note (needed for tablet users)
+                    var waitForEditNote = setInterval(function() {
+                        var note = document.querySelector(noteSelector);
+                        if (elementExists(note)) {
+                            clearInterval(note);
+
+                            note.onclick = function () {
+                                // check classlist for inactivity
+                                if (!note.classList.contains('inactive')) {
+                                    window.Android.setSwipeRefresher(disableSwipe);
+                                }
+                            };
+                        }
+                    }, slowDelay);
+                    // clicking the close button conditionally enables swipe
+                    var waitForClose = setInterval(function() {
+                        var noteEditCloseButton = document.querySelector(noteEditCloseButtonSelector);
+                        if (elementExists(noteEditCloseButton)) {
+                            clearInterval(waitForClose)
+
+                            noteEditCloseButton.onclick = function () {
+                                window.Android.setSwipeRefresher(noteListContainer.scrollTop);
+                            };
+                        }
+                    }, slowDelay);
+
+                    // allow back button to close current element
+                    setInterval(function() {
+                        var currentCloseButton = "";
+                        // first, see if description cancel button exists
+                        var tempCloseButton = document.querySelector(imageAltTextCancelSelector);
+                        if (elementExists(tempCloseButton)) currentCloseButton = imageAltTextCancelSelector;
+                        else {
+                            // second, see if warning cancel button exists
+                            tempCloseButton = document.querySelector(warningCancelSelector);
+                            if (elementExists(tempCloseButton)) currentCloseButton = warningCancelSelector;
+                            else {
+                                // third, see if image close button exists
+                                tempCloseButton = document.querySelector(lightBoxCloseSelector);
+                                if (elementExists(tempCloseButton)) currentCloseButton = lightBoxCloseSelector;
+                                else {
+                                    // fourth, see if edit note close button exists and is visible
+                                    tempCloseButton = document.querySelector(noteEditCloseButtonSelector);
+                                    if (elementExists(tempCloseButton) && window.getComputedStyle(document.querySelector(noteEditCloseButtonSelector)).visibility == 'visible') currentCloseButton = noteEditCloseButtonSelector;
+                                    else {
+                                        // lastly, see if help close button exists
+                                        tempCloseButton = document.querySelector(flexPaneCloseButtonSelector);
+                                        if (elementExists(tempCloseButton)) currentCloseButton = flexPaneCloseButtonSelector;
+                                    }
+                                }
+                            }
+                        }
+
+                        // finalize
+                        window.Android.setCloseAvailable(elementExists(tempCloseButton), currentCloseButton);
+                    }, slowDelay);
+
+                    /*var helpIFrameSelector = helpPaneSelector + ' iframe'; // TODO: DISABLED BECAUSE WEBVIEW DOESN'T ACTIVATE JAVASCRIPT BEYOND THE FIRST IFRAME
+                    var helpIFrameLoaded = false;
+                    function checkForHelp() {
+                        setTimeout(function() {
+                            var helpIFrame = document.querySelector(helpIFrameSelector);
+                            var helpIFrameExists = elementExists(helpIFrame);
+                            if (helpIFrameExists && !helpIFrameLoaded) {
+                                var newURL = window.Android.getHelpUrl();
+
+                                // change to the new URL
+                                helpIFrame.src = newURL;
+                                helpIFrameLoaded = true;
+                            } else if (!helpIFrameExists) helpIFrameLoaded = false;
+                            checkForHelp();
+                        }, fastDelay);
                     }
+                    checkForHelp();*/
+
                     // execute once to determine swipe at page load
                     window.Android.setSwipeRefresher(noteListContainer.scrollTop);
-
                     // set webView to visible
                     window.Android.webViewSetVisible();
                 }
-            }, 100);
+            }, fastDelay);
         } else {
             var checkLoading = setInterval(function() {
                 if (typeof(document.activeElement) != 'undefined' && document.activeElement != null) {
                     clearInterval(checkLoading);
 
                     // the create account link is broken, and needs to be changed
-                    if (currentUrl == 'login.microsoftonline.com/common/oauth2/authorize') {
-                        var signupUrl = 'https://signup.live.com/'
-                        var signupSelector = 'signup';
-                        var signup = document.getElementById(signupSelector);
+                    if (currentURL == loginURL) {
+                        var signUpSelector = 'signup';
+                        var signUp = document.getElementById(signUpSelector);
 
-                        var newSignup = signup.cloneNode(true);
-                        newSignup.href = signupUrl;
+                        var newSignUp = signUp.cloneNode(true);
+                        newSignUp.href = signUpURL;
 
-                        signup.remove();
-                        document.getElementsByClassName('form-group')[1].appendChild(newSignup);
+                        signUp.remove();
+                        document.getElementsByClassName('form-group')[1].appendChild(newSignUp);
                     }
 
+                    window.Android.setSwipeRefresher(disableSwipe);
                     window.Android.webViewSetVisible();
                 }
-            }, 100);
+            }, fastDelay);
         }
 
         // continue with website related fixes
         var node = document.createElement('style');
 
         node.type = 'text/css';
-        // uses only app_conversion.css for mobile view
         node.innerHTML = themeCss;
 
         document.head.appendChild(node);
