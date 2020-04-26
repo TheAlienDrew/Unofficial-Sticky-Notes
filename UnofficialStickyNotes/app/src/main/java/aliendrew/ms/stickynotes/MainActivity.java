@@ -126,6 +126,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     private ImageView splashImage;
     private SwipeRefreshLayout swipeRefresher;
     private boolean appLaunched = true;
+    private boolean offline = true;
     private boolean cacheErrorSent = false;
     private boolean disableReloading = true;
     private boolean singleBack = false;
@@ -395,6 +396,8 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         @Override
         public void onReceivedError(final WebView view, int errorCode, String description, String failingUrl) {
             super.onReceivedError(view, errorCode, description, failingUrl);
+            offline = true;
+
             // if there is no view can't really show a error for it
             // or if the page loaded a cached url of a page
             // or if the error has already been sent to the user, also exit
@@ -490,6 +493,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         @Override
         public void onPageStarted(WebView view, String url, Bitmap bitmap) {
             super.onPageStarted(view, url, bitmap);
+            offline = false;
 
             // disallows auto keyboard popup
             splashImage.requestFocus();
@@ -703,21 +707,18 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         });
         // allows for caching the website when using it offline
         webSettings.setAppCachePath(getApplicationContext().getCacheDir().getAbsolutePath());
-        webSettings.setAllowFileAccess(true);
+        webSettings.setAllowFileAccess(true); // TODO: DISABLE THIS IF I DON'T NEED TO ACCESS A PHYSICAL LOCATION TO USE DYNAMIC IMAGES / CHECK IF REMOVING THIS BREAKS CACHE
         webSettings.setAppCacheEnabled(true);
         // enables site to work
         webStickies.clearCache(false);
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
-        webSettings.setDatabaseEnabled(true);
-        webSettings.setLoadsImagesAutomatically(true);
-        webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW); // TODO: MAY NOT NEED AFTER FIXING DYNAMIC PROFILE PICTURES
         webStickies.addJavascriptInterface(new StickiesJS(), "Android");
         // visual fixes
         webStickies.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
         webStickies.setVerticalScrollBarEnabled(false);
         webStickies.setHorizontalScrollBarEnabled(false);
-        // TODO: testing... need to get 'no extension' (dynamic) images to load
 
         // start the webView
         internetCacheLoad(webStickies, STICKY_NOTES_URL);
@@ -943,6 +944,12 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             closeButtonActive = availability;
             closeButtonSelector = elementToClick;
         }
+
+        // TODO: testing... need to get 'no extension' (dynamic) images to load
+        // use 'offline' variable from MainActivity to determine re-downloading of dynamic image(s)
+        // need a function that downloads/applies the dynamic images when online, or appies the old
+        //   image saved as local file in private app storage... first download needs to save file
+        //   to private storage.
 
         // loads the specific theme url
         @JavascriptInterface

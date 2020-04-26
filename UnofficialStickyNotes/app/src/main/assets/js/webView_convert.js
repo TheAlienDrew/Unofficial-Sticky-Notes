@@ -18,7 +18,7 @@ javascript:(function() {
         const noteListContainerSelector = '.n-noteList-Container';
         const noteListSelector = '.n-noteList';
         const notePreviewSelector = 'n-noteList-notePreviewWrapper';
-        const helpPaneSelector = '#helpPaneFull'; // TODO: Disabled since we load the help into the webView
+        const helpPaneSelector = '#helpPaneFull'; // TODO: Required for fall back of help page
         const helpButtonSelector = '#O365_MainLink_Help_container';
         // theme changes based on url
         var currentURL = document.location.host + document.location.pathname;
@@ -41,18 +41,6 @@ javascript:(function() {
                 if(elementExists(noteList) && sidePane.childElementCount == 2) {
                     clearInterval(checkLoading);
 
-                    // change help to open in the webView
-                    var waitForHelp = setInterval(function() {
-                        var helpButton = document.querySelector(helpButtonSelector);
-                        if (elementExists(helpButton)) {
-                            clearInterval(waitForHelp);
-
-                            helpButton.onclick = function () {
-                                window.Android.loadStickiesHelp();
-                            };
-                        }
-                    }, fastDelay);
-
                     // scrolling note list checks swipe
                     noteListContainer.addEventListener('touchmove', function(e) {
                         window.Android.setSwipeRefresher(noteListContainer.scrollTop);
@@ -72,6 +60,17 @@ javascript:(function() {
                             };
                         }
                     }, slowDelay);
+                    // change help to open in the webView
+                    var waitForHelp = setInterval(function() {
+                        var helpButton = document.querySelector(helpButtonSelector);
+                        if (elementExists(helpButton)) {
+                            clearInterval(waitForHelp);
+
+                            helpButton.onclick = function () {
+                                window.Android.loadStickiesHelp();
+                            };
+                        }
+                    }, fastDelay);
                     // disable swipe if help pane is open // TODO: This is a fall back if the help page doesn't load into the webView
                     setInterval(function() {
                         var helpPane = document.querySelector(helpPaneSelector);
@@ -157,6 +156,9 @@ javascript:(function() {
                         }, fastDelay);
                     }
                     checkForHelp();*/
+
+                    // TODO: testing... need to get 'no extension' (dynamic) images to load
+                    // use 'offline' variable from MainActivity to determine re-downloading of dynamic image(s)
 
                     // execute once to determine swipe at page load
                     window.Android.setSwipeRefresher(noteListContainer.scrollTop);
