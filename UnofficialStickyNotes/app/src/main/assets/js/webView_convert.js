@@ -78,7 +78,7 @@ javascript:(function() {
                             // needs to always check
 
                             window.Android.setSwipeRefresher(disableSwipe);
-                            helpPane.style = "filter:invert(100%)";
+                            if (window.Android.isDarkMode()) helpPane.style = "filter:invert(100%)hue-rotate(180deg)";
                             helpPaneExists = true;
                         } else helpPaneExists = false;
                     }, slowDelay);
