@@ -63,7 +63,7 @@
 
                 <Button
                     android:id="@+id/upvotePlea"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:onClick="upvotePlea"
@@ -74,7 +74,7 @@
 
                 <Button
                     android:id="@+id/sendFeedbackBtn"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:onClick="sendFeedbackClick"
@@ -85,7 +85,7 @@
 
                 <Button
                     android:id="@+id/dismissMessageBtn"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:onClick="dismissTempMsg"
