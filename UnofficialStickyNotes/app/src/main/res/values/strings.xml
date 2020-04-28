@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Unofficial Sticky Notes</string>
+    <string name="splashImgDesc">Splash image for app launch</string>
     <string name="popupInfo"><b>If you want Microsoft to create a true standalone version of Sticky Notes as a separate app, please head to the <a href="https://www.change.org/standalone-sticky-notes-microsoft">petition</a> I created to make Sticky Notes a standalone app, and sign it.</b>
         \n\nThis app is open-sourced, so if you know how to code and want to help, check out the <a href="https://github.com/TheAlienDrew/Unofficial-Sticky-Notes">Unofficial Sticky Notes GitHub</a> page.
         \n\n<b><u>Features</u>:</b>
@@ -18,4 +19,9 @@
         \n<li>Widgets for single notes (these won\'t be able to sync automatically).</li>
     </string>
     <string name="closeBtn">Close</string>
+    <string name="sendFeedback">Send Feedback</string>
+    <!-- TODO: REMOVE BELOW ONCE TEXT INPUT IS FIXED -->
+    <string name="tempString"><b><font color="#f44336">IMPORTANT!</font> If you can\'t type in any notes, then this is because of Microsoft introducing a new text bug that I can\'t fix. If you\'d like to have it fixed faster, please upvote the plea to get it fixed by clicking the corresponding button. If however it is working, please send me feedback about what keyboard you are using and what settings you\'ve applied.\n\nI\'ll remove this prompt after the bug is fixed.</b></string>
+    <string name="upvotePlea">Upvote Plea</string>
+    <string name="dismiss">Dismiss</string>
 </resources>

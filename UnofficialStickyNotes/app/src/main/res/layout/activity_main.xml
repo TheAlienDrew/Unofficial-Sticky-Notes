@@ -16,7 +16,8 @@
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:scaleType="center"
-        android:src="@drawable/ic_splash" />
+        android:src="@drawable/ic_splash"
+        android:contentDescription="@string/splashImgDesc" />
 
     <WebView
         android:id="@+id/loadingLight"
@@ -30,20 +31,89 @@
         android:layout_height="match_parent"
         android:visibility="invisible" />
 
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipeContainer"
+    <!-- TODO: REMOVE LINEARLAYOUTS AND TEXTVIEW WHEN TEXT INPUT IS FIXED -->
+    <LinearLayout
+        android:id="@+id/tempLinearContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
+        android:layout_height="match_parent"
+        android:animateLayoutChanges="true"
+        android:orientation="vertical">
 
-        <aliendrew.ms.stickynotes.NoTextCorrectionsWebView
-            android:id="@+id/webView"
+        <LinearLayout
+            android:id="@+id/tempLinear"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:animateLayoutChanges="true"
+            android:background="@color/ic_launcher_background"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tempText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:animateLayoutChanges="true"
+                android:padding="10dp"
+                android:text="@string/tempString"/>
+
+            <LinearLayout
+                android:id="@+id/tempButtons"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:animateLayoutChanges="true">
+
+                <Button
+                    android:id="@+id/upvotePlea"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:onClick="upvotePlea"
+                    android:textColor="@color/colorAccent"
+                    android:text="@string/upvotePlea"
+                    tools:ignore="ButtonStyle">
+                </Button>
+
+                <Button
+                    android:id="@+id/sendFeedbackBtn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:onClick="sendFeedbackClick"
+                    android:textColor="@color/colorAccent"
+                    android:text="@string/sendFeedback"
+                    tools:ignore="ButtonStyle">
+                </Button>
+
+                <Button
+                    android:id="@+id/dismissMessageBtn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:onClick="dismissTempMsg"
+                    android:textColor="@color/colorAccent"
+                    android:text="@string/dismiss"
+                    tools:ignore="ButtonStyle">
+                </Button>
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- TODO: REMOVE LAYOUT EDITS TO SWIPELAYOUT WHEN TEXT INPUT IS FIXED -->
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipeContainer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:visibility="invisible"
-            android:windowSoftInputMode="adjustResize" >
+            android:animateLayoutChanges="true">
+            <!-- android:layout_alignParentBottom="true" -->
 
-        </aliendrew.ms.stickynotes.NoTextCorrectionsWebView>
+            <aliendrew.ms.stickynotes.NoTextCorrectionsWebView
+                android:id="@+id/webView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="invisible"
+                android:windowSoftInputMode="adjustResize" />
 
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    </LinearLayout>
 
 </RelativeLayout>

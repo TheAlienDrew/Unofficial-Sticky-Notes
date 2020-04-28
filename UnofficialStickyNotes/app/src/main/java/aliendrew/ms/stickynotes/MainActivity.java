@@ -73,6 +73,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -99,6 +100,8 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     //                          STICKY_HELP_URL_START: normally this host + path is for any MS app, but in our case, it'll only lead to the Sticky Notes help page
     private static final String APP_VERSION = BuildConfig.VERSION_NAME;
     private static final String APP_NAME = "Unofficial Sticky Notes";
+    private static final String DEV_EMAIL = "thealiendrew@gmail.com";
+    private static final String FEEDBACK_EMAIL_HEADER = APP_NAME+" ("+APP_VERSION+") User Feedback | Device: "+Build.MANUFACTURER+' '+Build.DEVICE+" ("+Build.MODEL+") API: "+Build.VERSION.SDK_INT;
     private static final String POPUP_TITLE = APP_NAME + " v" + APP_VERSION;
     private static final String SAVE_DIRECTORY = Environment.DIRECTORY_PICTURES + File.separator + APP_NAME;
     // user locale
@@ -126,7 +129,6 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     private ImageView splashImage;
     private SwipeRefreshLayout swipeRefresher;
     private boolean appLaunched = true;
-    private boolean offline = true;
     private boolean cacheErrorSent = false;
     private boolean disableReloading = true;
     private boolean singleBack = false;
@@ -183,6 +185,16 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
         }
         return isConnected;
+    }
+
+    // functions to allow user to send feedback
+    private void sendFeedback() {
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra(Intent.EXTRA_EMAIL, new String[] { DEV_EMAIL });
+        intent.putExtra(Intent.EXTRA_SUBJECT, FEEDBACK_EMAIL_HEADER);
+        intent.setType("plain/html");
+        startActivity(intent);
     }
 
     // functions for permissions
@@ -396,7 +408,6 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         @Override
         public void onReceivedError(final WebView view, int errorCode, String description, String failingUrl) {
             super.onReceivedError(view, errorCode, description, failingUrl);
-            offline = true;
 
             // if there is no view can't really show a error for it
             // or if the page loaded a cached url of a page
@@ -493,7 +504,6 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         @Override
         public void onPageStarted(WebView view, String url, Bitmap bitmap) {
             super.onPageStarted(view, url, bitmap);
-            offline = false;
 
             // disallows auto keyboard popup
             splashImage.requestFocus();
@@ -578,6 +588,23 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         }
     }
 
+    // TODO: REMOVE ME WHEN TEXT BUG IS FIXED
+    public void dismissTempMsg(View v) {
+        TextView tempText = findViewById(R.id.tempText);
+        LinearLayout tempButtons = findViewById(R.id.tempButtons);
+        tempText.setVisibility(TextView.GONE);
+        tempButtons.setVisibility(LinearLayout.GONE);
+        LinearLayout lp = findViewById(R.id.tempLinearContainer);
+        lp.removeViewAt(0);
+    }
+    public void sendFeedbackClick(View v) {
+        sendFeedback();
+    }
+    public void upvotePlea(View v) {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://onenote.uservoice.com/forums/909886-sticky-notes/suggestions/40272370-sticky-notes-website-android-text-input-broken"));
+        startActivity(intent);
+    }
+
     @SuppressLint({"SetJavaScriptEnabled", "JavascriptInterface"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -598,6 +625,10 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 if (isSystemDark()) useDarkTheme = true;
                 break;
         }
+
+        // TODO: REMOVE ME ONCE TEXT BUG IS FIXED BY MICROSOFT
+        TextView tempTextView = findViewById(R.id.tempText);
+        tempTextView.setMovementMethod(LinkMovementMethod.getInstance());
 
         // need splash image to focus on it after webView reloads so keyboard doesn't auto popup
         splashImage = findViewById(R.id.splashImage);
