@@ -189,12 +189,15 @@ public class MainActivity extends ImmersiveAppCompatActivity {
 
     // functions to allow user to send feedback
     private void sendFeedback() {
-        Intent intent = new Intent(Intent.ACTION_SEND);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra(Intent.EXTRA_EMAIL, new String[] { DEV_EMAIL });
-        intent.putExtra(Intent.EXTRA_SUBJECT, FEEDBACK_EMAIL_HEADER);
-        intent.setType("plain/html");
-        startActivity(intent);
+        Intent email = new Intent(Intent.ACTION_SENDTO);
+        email.putExtra(Intent.EXTRA_SUBJECT, FEEDBACK_EMAIL_HEADER);
+        email.setData(Uri.parse("mailto:"+DEV_EMAIL));
+        email.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try {
+            startActivity(Intent.createChooser(email, "Send email using..."));
+        } catch (android.content.ActivityNotFoundException ex) {
+            Toast.makeText(MainActivity.this, "No email clients installed.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     // functions for permissions
