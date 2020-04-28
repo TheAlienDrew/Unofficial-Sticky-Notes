@@ -750,6 +750,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW); // TODO: MAY NOT NEED AFTER FIXING DYNAMIC PROFILE PICTURES
         webStickies.addJavascriptInterface(new StickiesJS(), "Android");
         // visual fixes
+        webStickies.setInitialScale(1); // TODO: this might fix visual problems for phablets
         webSettings.setLoadWithOverviewMode(true); // TODO: this might fix visual problems for phablets
         webSettings.setUseWideViewPort(true); // TODO: this might fix visual problems for phablets
         webStickies.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
