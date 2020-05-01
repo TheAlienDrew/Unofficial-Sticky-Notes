@@ -19,14 +19,28 @@ javascript:(function() {
         const noteListSelector = '.n-noteList';
         const notePreviewSelector = 'n-noteList-notePreviewWrapper';
         const helpPaneSelector = '#helpPaneFull'; // TODO: Required for fall back of help page
+        const editableTextSelector = 'div[contenteditable="true"].n-slateEditorRoot';
         const helpButtonSelector = '#O365_MainLink_Help_container';
         // theme changes based on url
         var currentURL = document.location.host + document.location.pathname;
-        var themeCss = '*{-webkit-tap-highlight-color:transparent}:focus{outline:0!important}html{position:fixed;height:100%;width:100%}'; // see app_conversion.css
+        var tempImageFix = '.n-imageGalleryEdit-singleImage-FocusZone{padding-inline-start:0px}';
+        var themeCss = tempImageFix + '*{-webkit-tap-highlight-color:transparent}:focus{outline:0!important}html{position:fixed;height:100%;width:100%}'; // see app_conversion.css
         // function for elements
-        function elementExists(element) {
+        var elementExists = function(element) {
             return (typeof(element) != 'undefined' && element != null);
-        }
+        };
+        // functions for temporary text edit fixes
+        /*var selectAll = function(element) {
+            var range = document.createRange();
+            range.selectNodeContents(element);
+            var selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+        };
+        var copyNote = function(element) {
+            selectAll(element);
+            document.execCommand('copy');
+        };*/
 
         // wait for loading animation to disappear before making webView visible (if on sticky notes page)
         if (currentURL == stickyNotesURL) {
@@ -38,6 +52,7 @@ javascript:(function() {
                 var notePreview = document.getElementsByClassName(notePreviewSelector);
                 var helpPaneExists = false;
                 var closeButtonActive = false;
+                var editingNote = false;
                 if(elementExists(noteList) && sidePane.childElementCount == 2) {
                     clearInterval(checkLoading);
 
@@ -57,6 +72,7 @@ javascript:(function() {
 
                             notePreview[i].onclick = function () {
                                 window.Android.setSwipeRefresher(disableSwipe);
+                                editingNote = false; // needed to copy note data from another note when in tablet mode
                             };
                         }
                     }, slowDelay);
@@ -139,7 +155,22 @@ javascript:(function() {
                         window.Android.setCloseAvailable(elementExists(tempCloseButton), currentCloseButton);
                     }, slowDelay);
 
-                    /*var helpIFrameSelector = helpPaneSelector + ' iframe'; // TODO: DISABLED BECAUSE WEBVIEW DOESN'T ACTIVATE JAVASCRIPT BEYOND THE FIRST IFRAME
+                    // this allows android to edit note text until microsoft is smart enough to fix the website for android
+                    /*setInterval(function() { // TODO: THIS IS BASICALLY DONE, JUST THE FUNCTION IN MAIN DOESN'T SEEM TO WANT TO COPY TEXT WITH IT'S FORMATTING
+                        var editNote = document.querySelector(editableTextSelector);
+                        if (elementExists(editNote)) {
+                            // must be active to to edit
+                            if (document.activeElement == editNote && !editingNote) {
+                                editingNote = true;
+
+                                copyNote(editNote);
+                                window.Android.initEditNote();
+                            } else // committing changes is handled by android
+                                if (document.activeElement != editNote && editingNote) editingNote = false;
+                        } // else it doesn't exist yet
+                    });*/
+
+                    /*var helpIFrameSelector = helpPaneSelector + ' iframe'; // TODO: DISABLED BECAUSE WEBVIEW DOESN'T ACTIVATE DYNAMIC JAVASCRIPT/CSS BEYOND THE FIRST IFRAME
                     var helpIFrameLoaded = false;
                     function checkForHelp() {
                         setTimeout(function() {

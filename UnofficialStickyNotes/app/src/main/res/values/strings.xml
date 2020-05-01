@@ -20,8 +20,11 @@
     </string>
     <string name="closeBtn">Close</string>
     <string name="sendFeedback">Send Feedback</string>
+    <!-- required for my text fixes -->
+    <string name="editPlaceholder">Take a note…</string>
     <!-- TODO: REMOVE BELOW ONCE TEXT INPUT IS FIXED -->
-    <string name="tempString"><b><font color="#f44336">IMPORTANT!</font> If you can\'t type in any notes, then this is because of Microsoft introducing a new text bug that I can\'t fix. If you\'d like to have it fixed faster, please upvote the plea to get it fixed by clicking the corresponding button. If however it is working, please send me feedback about what keyboard you are using and what settings you\'ve applied.\n\nI\'ll remove this prompt after the bug is fixed.</b></string>
+    <string name="tempStringDark"><b><font color="#f44336">IMPORTANT!</font> If you can\'t type in any notes, then this is because of Microsoft introducing a new text bug that I can\'t fix. If you\'d like to have it fixed faster, please upvote the plea to get it fixed by clicking the corresponding button. If however it is working, please send me feedback about what keyboard you are using and what settings you\'ve applied.\n\nI\'ll remove this prompt after the bug is fixed.</b></string>
+    <string name="tempStringLight"><b><font color="#b71c1c">IMPORTANT!</font> If you can\'t type in any notes, then this is because of Microsoft introducing a new text bug that I can\'t fix. If you\'d like to have it fixed faster, please upvote the plea to get it fixed by clicking the corresponding button. If however it is working, please send me feedback about what keyboard you are using and what settings you\'ve applied.\n\nI\'ll remove this prompt after the bug is fixed.</b></string>
     <string name="upvotePlea">Upvote Plea</string>
     <string name="dismiss">Dismiss</string>
 </resources>

@@ -11,13 +11,19 @@ package aliendrew.ms.stickynotes;
 // All deprecations that you might see in the build log are all taken care of, and shouldn't
 //   interfere with the newer versions of Android that don't support them.
 //
-// TODO: Microsoft uses an older version of DraftJS on Sticky Notes that wasn't compatible
-//   with Android, and I'm not sure how to fix so it's using the latest version. So, for now, text
-//   input is limited (no glide/voice, and no auto-text manipulations).
+// TODO: Microsoft uses an older version of DraftJS on Sticky Notes that wasn't compatible with
+//  Android, and I'm not sure how to fix so it's using the latest version. So, for now, text input
+//  is limited (no glide/voice, and no auto-text manipulations).
 //
-// TODO: Theme needs fix when uploading a photo
+// TODO: Looking into rich text editors for Android to externally edit note text... (could solve above)
+//  * Some promising libraries:
+//    1. https://github.com/dankito/RichTextEditor ///// trying to use this one first as it's most up
+//       to date (and in a language I can understand)
+//    2. https://github.com/joker-fu/RichTextEditor //// looks better and could be better to use, but
+//       last update was 17 months ago (from May 2020)
 
 import android.Manifest;
+import android.animation.LayoutTransition;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -25,6 +31,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DownloadManager;
 import android.content.ClipData;
+//import android.content.ClipboardManager; // TODO: TRYING TO IMPLEMENT EXTERNAL RICH TEXT EDITOR
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -33,12 +40,18 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.BlendMode;
+import android.graphics.BlendModeColorFilter;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.ColorDrawable;
 
+//import androidx.constraintlayout.widget.ConstraintLayout; // TODO: MIGHT NOT NEED, FOR EDITOR
+import androidx.annotation.NonNull;
 import androidx.exifinterface.media.ExifInterface;
 
+import android.graphics.drawable.Drawable;
 import android.media.MediaScannerConnection;
 import android.net.ConnectivityManager;
 import android.net.Network;
@@ -80,6 +93,8 @@ import android.widget.Toast;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+//import net.dankito.richtexteditor.android.RichTextEditor; // TODO: TRYING TO IMPLEMENT EXTERNAL RICH TEXT EDITOR
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -134,6 +149,10 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     private boolean singleBack = false;
     private boolean closeButtonActive = false;
     private String closeButtonSelector = null;
+    //private ClipboardManager clipboard; // TODO: TRYING TO IMPLEMENT EXTERNAL RICH TEXT EDITOR
+
+    // save text to note javascript // TODO: TRYING TO IMPLEMENT EXTERNAL RICH TEXT EDITOR
+    //private static final String saveToNote = "javascript: (function() {var element=document.querySelector('div[contenteditable=\"true\"].n-slateEditorRoot');if(void 0!==element&&null!=element){element.focus();var range=document.createRange();range.selectNodeContents(element);var selection=window.getSelection();selection.removeAllRanges(),selection.addRange(range),document.execCommand(\"delete\"),document.execCommand(\"paste\"),element.blur()}})()";
 
     // file upload initialize
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -158,6 +177,39 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     private WebView webLoadingDark;
     private WebView webLoadingLight;
     private NoTextCorrectionsWebView webStickies;
+
+    // rich text editor for editing notes
+    //private RichTextEditor richTextEditor; // TODO: TRYING TO IMPLEMENT EXTERNAL RICH TEXT EDITOR
+
+    // TODO: REMOVE ME ONCE TEXT BUG IS FIXED BY MICROSOFT
+    LinearLayout tempLinear;
+    TextView tempText;
+    Button upvotePlea;
+    Button sendFeedbackBtn;
+    Button dismissMessageBtn;
+    private void setTempTheme() {
+        if (useDarkTheme) {
+            tempLinear.setBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.colorDarkPrimary));
+            MyDrawableCompat.setColorFilter(upvotePlea.getBackground(), ContextCompat.getColor(MainActivity.this, R.color.colorDarkPrimaryLight));
+            MyDrawableCompat.setColorFilter(sendFeedbackBtn.getBackground(), ContextCompat.getColor(MainActivity.this, R.color.colorDarkPrimaryLight));
+            MyDrawableCompat.setColorFilter(dismissMessageBtn.getBackground(), ContextCompat.getColor(MainActivity.this, R.color.colorDarkPrimaryLight));
+            tempText.setTextColor(Color.WHITE);
+            upvotePlea.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorAccent));
+            sendFeedbackBtn.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorAccent));
+            dismissMessageBtn.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorAccent));
+            tempText.setText(getResources().getText(R.string.tempStringDark));
+        } else {
+            tempLinear.setBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.colorLightPrimary));
+            MyDrawableCompat.setColorFilter(upvotePlea.getBackground(), ContextCompat.getColor(MainActivity.this, R.color.colorLightPrimaryDark));
+            MyDrawableCompat.setColorFilter(sendFeedbackBtn.getBackground(), ContextCompat.getColor(MainActivity.this, R.color.colorLightPrimaryDark));
+            MyDrawableCompat.setColorFilter(dismissMessageBtn.getBackground(), ContextCompat.getColor(MainActivity.this, R.color.colorLightPrimaryDark));
+            tempText.setTextColor(Color.BLACK);
+            upvotePlea.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorAccentDark));
+            sendFeedbackBtn.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorAccentDark));
+            dismissMessageBtn.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorAccentDark));
+            tempText.setText(getResources().getText(R.string.tempStringLight));
+        }
+    }
 
     // check system theme
     private boolean isSystemDark() {
@@ -591,14 +643,39 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         }
     }
 
+    // functions to allow saving/editing of rich text into webView
+/*    public void commitEditNote(View v) { // TODO: TRYING TO IMPLEMENT EXTERNAL RICH TEXT EDITOR
+        ClipData clipData = ; // SOME HOW GET DATA FROM EDITOR INTO CLIPBOARD
+        clipboard.setPrimaryClip(clipData);
+        webStickies.evaluateJavascript(saveToNote, null);
+        // THEN SET THE EDITOR TO BE EMPTY IF NEEDED
+
+        richTextEditor.setVisibility(View.GONE);
+        webStickies.setVisibility(View.VISIBLE);
+    }
+    public void cancelEditNote(View v) { // TODO: TRYING TO IMPLEMENT EXTERNAL RICH TEXT EDITOR
+        webStickies.evaluateJavascript("javascript: (function() {window.getSelection().removeAllRanges(); document.activeElement.blur()})()", null);
+
+        richTextEditor.setVisibility(View.GONE);
+        webStickies.setVisibility(View.VISIBLE);
+    }*/
+
     // TODO: REMOVE ME WHEN TEXT BUG IS FIXED
     public void dismissTempMsg(View v) {
+        LinearLayout tempLinearContainer = findViewById(R.id.tempLinearContainer);
+        LinearLayout tempLinear = findViewById(R.id.tempLinear);
         TextView tempText = findViewById(R.id.tempText);
         LinearLayout tempButtons = findViewById(R.id.tempButtons);
+        LayoutTransition dismissTransition = new LayoutTransition();
+
+        dismissTransition.enableTransitionType(LayoutTransition.CHANGE_DISAPPEARING);
+        tempLinearContainer.setLayoutTransition(dismissTransition);
+        tempLinear.setLayoutTransition(dismissTransition);
+
         tempText.setVisibility(TextView.GONE);
         tempButtons.setVisibility(LinearLayout.GONE);
-        LinearLayout lp = findViewById(R.id.tempLinearContainer);
-        lp.removeViewAt(0);
+
+        tempLinearContainer.removeViewAt(0);
     }
     public void sendFeedbackClick(View v) {
         sendFeedback();
@@ -629,12 +706,20 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 break;
         }
 
-        // TODO: REMOVE ME ONCE TEXT BUG IS FIXED BY MICROSOFT
-        TextView tempTextView = findViewById(R.id.tempText);
-        tempTextView.setMovementMethod(LinkMovementMethod.getInstance());
-
         // need splash image to focus on it after webView reloads so keyboard doesn't auto popup
         splashImage = findViewById(R.id.splashImage);
+
+        // relates to editing text since Microsoft broke it for android
+        /*clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+        richTextEditor = findViewById(R.id.editor);*/ // TODO: TRYING TO IMPLEMENT EXTERNAL RICH TEXT EDITOR
+        // TODO: REMOVE ME ONCE TEXT BUG IS FIXED BY MICROSOFT
+        tempLinear = findViewById(R.id.tempLinear);
+        tempText = findViewById(R.id.tempText);
+        tempText.setMovementMethod(LinkMovementMethod.getInstance());
+        upvotePlea = findViewById(R.id.upvotePlea);
+        sendFeedbackBtn = findViewById(R.id.sendFeedbackBtn);
+        dismissMessageBtn = findViewById(R.id.dismissMessageBtn);
+        setTempTheme();
 
         // initialize swipe refresh layout, and disable it while first load happens
         swipeRefresher = findViewById(R.id.swipeContainer);
@@ -923,7 +1008,19 @@ public class MainActivity extends ImmersiveAppCompatActivity {
 
         if (updatedToNewVersion) popupDialog.dismiss();
         useDarkTheme = darkTheme;
+        setTempTheme(); // TODO: REMOVE ME AFTER FIX TO TEXT BUG
         internetCacheLoad(webStickies, null);
+    }
+
+    // TODO: GET RID OF WHEN TEXT EDIT BUG IS FIXED
+    public static class MyDrawableCompat {
+        public static void setColorFilter(@NonNull Drawable drawable, int color) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                drawable.setColorFilter(new BlendModeColorFilter(color, BlendMode.SRC_ATOP));
+            } else {
+                drawable.setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
+            }
+        }
     }
 
     class StickiesJS {
@@ -942,6 +1039,9 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                     webStickies.setVisibility(View.VISIBLE);
                     // make sure one loading screen is available after first launch
                     if (appLaunched) {
+                        // TODO: GET RID OF WHEN TEXT EDIT BUG IS FIXED
+                        tempLinear.setVisibility(View.VISIBLE);
+
                         if (useDarkTheme) webLoadingDark.setVisibility(View.VISIBLE);
                         else webLoadingLight.setVisibility(View.VISIBLE);
                         appLaunched = false;
@@ -1003,5 +1103,27 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 }
             });
         }
+
+        // functions to allow editing of rich text outside of webView
+        /*@JavascriptInterface
+        public void initEditNote() { // TODO: TRYING TO IMPLEMENT EXTERNAL RICH TEXT EDITOR
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    // TODO: FILL EDIT TEXT WITH CLIPBOARD DATA, set visible, FOR USER TO EDIT
+                    webStickies.setVisibility(View.INVISIBLE);
+                    if (clipboard.hasPrimaryClip()) {
+                        ClipData primaryClip = clipboard.getPrimaryClip();
+                        if (primaryClip != null) {
+                            ClipData.Item item = primaryClip.getItemAt(0);
+                            String pasteData = item.getHtmlText();
+                            if (pasteData != null) ; // SOME HOW PUT DATA FROM WEBVIEW INTO EDITOR
+                        }
+                    }
+                    richTextEditor.setVisibility(View.VISIBLE);
+                    richTextEditor.requestFocus();
+                }
+            });
+        }*/
     }
 }

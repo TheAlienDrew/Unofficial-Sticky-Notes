@@ -36,30 +36,25 @@
         android:id="@+id/tempLinearContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:animateLayoutChanges="true"
         android:orientation="vertical">
 
         <LinearLayout
             android:id="@+id/tempLinear"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:animateLayoutChanges="true"
-            android:background="@color/ic_launcher_background"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:visibility="gone">
 
             <TextView
                 android:id="@+id/tempText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:animateLayoutChanges="true"
-                android:padding="10dp"
-                android:text="@string/tempString"/>
+                android:padding="10dp"/>
 
             <LinearLayout
                 android:id="@+id/tempButtons"
                 android:layout_height="wrap_content"
-                android:layout_width="match_parent"
-                android:animateLayoutChanges="true">
+                android:layout_width="match_parent">
 
                 <Button
                     android:id="@+id/upvotePlea"
@@ -67,7 +62,6 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:onClick="upvotePlea"
-                    android:textColor="@color/colorAccent"
                     android:text="@string/upvotePlea"
                     tools:ignore="ButtonStyle">
                 </Button>
@@ -78,7 +72,6 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:onClick="sendFeedbackClick"
-                    android:textColor="@color/colorAccent"
                     android:text="@string/sendFeedback"
                     tools:ignore="ButtonStyle">
                 </Button>
@@ -89,7 +82,6 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:onClick="dismissTempMsg"
-                    android:textColor="@color/colorAccent"
                     android:text="@string/dismiss"
                     tools:ignore="ButtonStyle">
                 </Button>
@@ -101,8 +93,7 @@
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/swipeContainer"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:animateLayoutChanges="true">
+            android:layout_height="match_parent">
             <!-- android:layout_alignParentBottom="true" -->
 
             <aliendrew.ms.stickynotes.NoTextCorrectionsWebView
@@ -115,5 +106,24 @@
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     </LinearLayout>
+
+    <!--<LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <net.dankito.richtexteditor.android.RichTextEditor
+            android:id="@+id/editor"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="10" />
+
+        <net.dankito.richtexteditor.android.toolbar.GroupedCommandsEditorToolbar
+            android:id="@+id/editorToolbar"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:background="@color/colorPrimary" />
+
+    </LinearLayout>-->
 
 </RelativeLayout>
