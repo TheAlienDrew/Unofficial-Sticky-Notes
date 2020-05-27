@@ -18,9 +18,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    /*compileOptions { // TODO: FOR GECKOVIEW
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }*/
 }
 
 dependencies {
+    //implementation 'org.mozilla.geckoview:geckoview:77.0.20200525134724' // TODO: TESTING GECKOVIEW
     //implementation 'net.dankito.richtexteditor:richtexteditor-android:2.0.15' // TODO: TRYING TO IMPLEMENT EXTERNAL RICH TEXT EDITOR
     implementation 'androidx.appcompat:appcompat:1.1.0'
     //implementation 'androidx.constraintlayout:constraintlayout:1.1.3' // TODO: MIGHT NOT NEED FOR EDITOR

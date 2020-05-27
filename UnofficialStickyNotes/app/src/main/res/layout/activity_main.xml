@@ -126,4 +126,10 @@
 
     </LinearLayout>-->
 
+    <!-- TODO: LOOKING INTO GECKOVIEW, APP REWRITE POSSIBLE -->
+    <!--<org.mozilla.geckoview.GeckoView
+        android:id="@+id/geckoview"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" />-->
+
 </RelativeLayout>

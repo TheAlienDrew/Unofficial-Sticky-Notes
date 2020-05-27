@@ -89,6 +89,7 @@ import android.view.View;
 
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.InputConnection;
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
 import android.webkit.JavascriptInterface;
@@ -112,6 +113,10 @@ import androidx.core.content.ContextCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 //import net.dankito.richtexteditor.android.RichTextEditor; // TODO: TRYING TO IMPLEMENT EXTERNAL RICH TEXT EDITOR
+
+/*import org.mozilla.geckoview.GeckoRuntime; // TODO: MIGHT USE GECKOVIEW REWRITE TO FIX ISSUES WITH TEXT INPUT
+import org.mozilla.geckoview.GeckoSession;
+import org.mozilla.geckoview.GeckoView;*/
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -707,6 +712,16 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // TODO: TESTING GECKOVIEW
+        /*GeckoView view = findViewById(R.id.geckoview);
+        GeckoSession session = new GeckoSession();
+        GeckoRuntime runtime = GeckoRuntime.create(this);
+
+        session.open(runtime);
+        view.setSession(session);
+        session.loadUri(STICKY_NOTES_URL);
+        view.setAutofillEnabled(false);*/
 
         // get preferences
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);

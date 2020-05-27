@@ -18,6 +18,9 @@ allprojects {
     repositories {
         google()
         jcenter()
+        /*maven { // TODO: FOR GECKOVIEW
+            url "https://maven.mozilla.org/maven2"
+        }*/
 
     }
 }
