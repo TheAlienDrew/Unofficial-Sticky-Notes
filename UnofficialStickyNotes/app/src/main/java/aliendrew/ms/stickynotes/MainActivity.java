@@ -27,20 +27,8 @@ package aliendrew.ms.stickynotes;
 //   specifically https://caniuse.com/#feat=css-variables&compare=android+4.4.3-4.4.4
 // All deprecations that you might see in the build log are all taken care of, and shouldn't
 //   interfere with the newer versions of Android that don't support them.
-//
-// TODO: Microsoft uses an older version of DraftJS on Sticky Notes that wasn't compatible with
-//  Android, and I'm not sure how to fix so it's using the latest version. So, for now, text input
-//  is limited (no glide/voice, and no auto-text manipulations).
-//
-// TODO: Looking into rich text editors for Android to externally edit note text... (could solve above)
-//  * Some promising libraries:
-//    1. https://github.com/dankito/RichTextEditor ///// trying to use this one first as it's most up
-//       to date (and in a language I can understand)
-//    2. https://github.com/joker-fu/RichTextEditor //// looks better and could be better to use, but
-//       last update was 17 months ago (from May 2020)
 
 import android.Manifest;
-import android.animation.LayoutTransition;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -48,7 +36,6 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DownloadManager;
 import android.content.ClipData;
-//import android.content.ClipboardManager; // TODO: TRYING TO IMPLEMENT EXTERNAL RICH TEXT EDITOR
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -57,18 +44,12 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.BlendMode;
-import android.graphics.BlendModeColorFilter;
 import android.graphics.Color;
 import android.graphics.Matrix;
-import android.graphics.PorterDuff;
 import android.graphics.drawable.ColorDrawable;
 
-//import androidx.constraintlayout.widget.ConstraintLayout; // TODO: MIGHT NOT NEED, FOR EDITOR
-import androidx.annotation.NonNull;
 import androidx.exifinterface.media.ExifInterface;
 
-import android.graphics.drawable.Drawable;
 import android.media.MediaScannerConnection;
 import android.net.ConnectivityManager;
 import android.net.Network;
@@ -89,7 +70,6 @@ import android.view.View;
 
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.inputmethod.InputConnection;
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
 import android.webkit.JavascriptInterface;
@@ -104,19 +84,12 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
-//import net.dankito.richtexteditor.android.RichTextEditor; // TODO: TRYING TO IMPLEMENT EXTERNAL RICH TEXT EDITOR
-
-/*import org.mozilla.geckoview.GeckoRuntime; // TODO: MIGHT USE GECKOVIEW REWRITE TO FIX ISSUES WITH TEXT INPUT
-import org.mozilla.geckoview.GeckoSession;
-import org.mozilla.geckoview.GeckoView;*/
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -171,10 +144,6 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     private boolean singleBack = false;
     private boolean closeButtonActive = false;
     private String closeButtonSelector = null;
-    //private ClipboardManager clipboard; // TODO: TRYING TO IMPLEMENT EXTERNAL RICH TEXT EDITOR
-
-    // save text to note javascript // TODO: TRYING TO IMPLEMENT EXTERNAL RICH TEXT EDITOR
-    //private static final String saveToNote = "javascript: (function() {var element=document.querySelector('div[contenteditable=\"true\"].n-slateEditorRoot');if(void 0!==element&&null!=element){element.focus();var range=document.createRange();range.selectNodeContents(element);var selection=window.getSelection();selection.removeAllRanges(),selection.addRange(range),document.execCommand(\"delete\"),document.execCommand(\"paste\"),element.blur()}})()";
 
     // file upload initialize
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -200,11 +169,8 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     private WebView webLoadingLight;
     private NoTextCorrectionsWebView webStickies;
 
-    // rich text editor for editing notes
-    //private RichTextEditor richTextEditor; // TODO: TRYING TO IMPLEMENT EXTERNAL RICH TEXT EDITOR
-
-    // TODO: REMOVE ME ONCE TEXT BUG IS FIXED BY MICROSOFT
-    LinearLayout tempLinear;
+    // TODO: old code for text bug prompt (theming), might be useful to repurpose as a "rating me" popup
+    /*LinearLayout tempLinear;
     TextView tempText;
     Button upvotePlea;
     Button sendFeedbackBtn;
@@ -231,7 +197,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             dismissMessageBtn.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorAccentDark));
             tempText.setText(getResources().getText(R.string.tempStringLight));
         }
-    }
+    }*/
 
     // check system theme
     private boolean isSystemDark() {
@@ -261,8 +227,9 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         return isConnected;
     }
 
+    // TODO: old code for text bug prompt (feedback sender), might be useful to repurpose as a "rating me" popup
     // functions to allow user to send feedback
-    private void sendFeedback() {
+    /*private void sendFeedback() {
         Intent email = new Intent(Intent.ACTION_SENDTO);
         email.putExtra(Intent.EXTRA_SUBJECT, FEEDBACK_EMAIL_HEADER);
         email.setData(Uri.parse("mailto:"+DEV_EMAIL));
@@ -272,7 +239,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         } catch (android.content.ActivityNotFoundException ex) {
             Toast.makeText(MainActivity.this, "No email clients installed.", Toast.LENGTH_SHORT).show();
         }
-    }
+    }*/
 
     // functions for permissions
     public boolean file_permission(){
@@ -665,25 +632,8 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         }
     }
 
-    // functions to allow saving/editing of rich text into webView
-/*    public void commitEditNote(View v) { // TODO: TRYING TO IMPLEMENT EXTERNAL RICH TEXT EDITOR
-        ClipData clipData = ; // SOME HOW GET DATA FROM EDITOR INTO CLIPBOARD
-        clipboard.setPrimaryClip(clipData);
-        webStickies.evaluateJavascript(saveToNote, null);
-        // THEN SET THE EDITOR TO BE EMPTY IF NEEDED
-
-        richTextEditor.setVisibility(View.GONE);
-        webStickies.setVisibility(View.VISIBLE);
-    }
-    public void cancelEditNote(View v) { // TODO: TRYING TO IMPLEMENT EXTERNAL RICH TEXT EDITOR
-        webStickies.evaluateJavascript("javascript: (function() {window.getSelection().removeAllRanges(); document.activeElement.blur()})()", null);
-
-        richTextEditor.setVisibility(View.GONE);
-        webStickies.setVisibility(View.VISIBLE);
-    }*/
-
-    // TODO: REMOVE ME WHEN TEXT BUG IS FIXED
-    public void dismissTempMsg(View v) {
+    // TODO: old code for text bug prompt (dismissal), might be useful to repurpose as a "rating me" popup
+    /*public void dismissTempMsg(View v) {
         LinearLayout tempLinearContainer = findViewById(R.id.tempLinearContainer);
         LinearLayout tempLinear = findViewById(R.id.tempLinear);
         TextView tempText = findViewById(R.id.tempText);
@@ -705,23 +655,13 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     public void upvotePlea(View v) {
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://onenote.uservoice.com/forums/909886-sticky-notes/suggestions/40272370-sticky-notes-website-android-text-input-broken"));
         startActivity(intent);
-    }
+    }*/
 
     @SuppressLint({"SetJavaScriptEnabled", "JavascriptInterface"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        // TODO: TESTING GECKOVIEW
-        /*GeckoView view = findViewById(R.id.geckoview);
-        GeckoSession session = new GeckoSession();
-        GeckoRuntime runtime = GeckoRuntime.create(this);
-
-        session.open(runtime);
-        view.setSession(session);
-        session.loadUri(STICKY_NOTES_URL);
-        view.setAutofillEnabled(false);*/
 
         // get preferences
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
@@ -741,17 +681,14 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         // need splash image to focus on it after webView reloads so keyboard doesn't auto popup
         splashImage = findViewById(R.id.splashImage);
 
-        // relates to editing text since Microsoft broke it for android
-        /*clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-        richTextEditor = findViewById(R.id.editor);*/ // TODO: TRYING TO IMPLEMENT EXTERNAL RICH TEXT EDITOR
-        // TODO: REMOVE ME ONCE TEXT BUG IS FIXED BY MICROSOFT
-        tempLinear = findViewById(R.id.tempLinear);
+        // TODO: old code for text bug prompt (initializing), might be useful to repurpose as a "rating me" popup
+        /*tempLinear = findViewById(R.id.tempLinear);
         tempText = findViewById(R.id.tempText);
         tempText.setMovementMethod(LinkMovementMethod.getInstance());
         upvotePlea = findViewById(R.id.upvotePlea);
         sendFeedbackBtn = findViewById(R.id.sendFeedbackBtn);
         dismissMessageBtn = findViewById(R.id.dismissMessageBtn);
-        setTempTheme();
+        setTempTheme();*/
 
         // initialize swipe refresh layout, and disable it while first load happens
         swipeRefresher = findViewById(R.id.swipeContainer);
@@ -1040,12 +977,12 @@ public class MainActivity extends ImmersiveAppCompatActivity {
 
         if (updatedToNewVersion) popupDialog.dismiss();
         useDarkTheme = darkTheme;
-        setTempTheme(); // TODO: REMOVE ME AFTER FIX TO TEXT BUG
+        // setTempTheme(); // TODO: old code for text bug prompt (sets theme), might be useful to repurpose as a "rating me" popup
         internetCacheLoad(webStickies, null);
     }
 
-    // TODO: GET RID OF WHEN TEXT EDIT BUG IS FIXED
-    public static class MyDrawableCompat {
+    // TODO: old code for text bug prompt (relates to background of prompt somehow), might be useful to repurpose as a "rating me" popup
+    /*public static class MyDrawableCompat {
         public static void setColorFilter(@NonNull Drawable drawable, int color) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 drawable.setColorFilter(new BlendModeColorFilter(color, BlendMode.SRC_ATOP));
@@ -1053,7 +990,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 drawable.setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
             }
         }
-    }
+    }*/
 
     class StickiesJS {
         // check if it's dark theme for javascript
@@ -1071,8 +1008,8 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                     webStickies.setVisibility(View.VISIBLE);
                     // make sure one loading screen is available after first launch
                     if (appLaunched) {
-                        // TODO: GET RID OF WHEN TEXT EDIT BUG IS FIXED
-                        tempLinear.setVisibility(View.VISIBLE);
+                        // TODO: old code for text bug prompt (sets visibility), might be useful to repurpose as a "rating me" popup
+                        // tempLinear.setVisibility(View.VISIBLE);
 
                         if (useDarkTheme) webLoadingDark.setVisibility(View.VISIBLE);
                         else webLoadingLight.setVisibility(View.VISIBLE);
@@ -1135,27 +1072,5 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 }
             });
         }
-
-        // functions to allow editing of rich text outside of webView
-        /*@JavascriptInterface
-        public void initEditNote() { // TODO: TRYING TO IMPLEMENT EXTERNAL RICH TEXT EDITOR
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    // TODO: FILL EDIT TEXT WITH CLIPBOARD DATA, set visible, FOR USER TO EDIT
-                    webStickies.setVisibility(View.INVISIBLE);
-                    if (clipboard.hasPrimaryClip()) {
-                        ClipData primaryClip = clipboard.getPrimaryClip();
-                        if (primaryClip != null) {
-                            ClipData.Item item = primaryClip.getItemAt(0);
-                            String pasteData = item.getHtmlText();
-                            if (pasteData != null) ; // SOME HOW PUT DATA FROM WEBVIEW INTO EDITOR
-                        }
-                    }
-                    richTextEditor.setVisibility(View.VISIBLE);
-                    richTextEditor.requestFocus();
-                }
-            });
-        }*/
     }
 }

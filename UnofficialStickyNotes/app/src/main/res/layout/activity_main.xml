@@ -31,105 +31,18 @@
         android:layout_height="match_parent"
         android:visibility="invisible" />
 
-    <!-- TODO: REMOVE LINEARLAYOUTS AND TEXTVIEW WHEN TEXT INPUT IS FIXED -->
-    <LinearLayout
-        android:id="@+id/tempLinearContainer"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="match_parent">
 
-        <LinearLayout
-            android:id="@+id/tempLinear"
+        <aliendrew.ms.stickynotes.NoTextCorrectionsWebView
+            android:id="@+id/webView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="gone">
+            android:layout_height="match_parent"
+            android:visibility="invisible"
+            android:windowSoftInputMode="adjustResize" />
 
-            <TextView
-                android:id="@+id/tempText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="10dp"/>
-
-            <LinearLayout
-                android:id="@+id/tempButtons"
-                android:layout_height="wrap_content"
-                android:layout_width="match_parent">
-
-                <Button
-                    android:id="@+id/upvotePlea"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:onClick="upvotePlea"
-                    android:text="@string/upvotePlea"
-                    tools:ignore="ButtonStyle">
-                </Button>
-
-                <Button
-                    android:id="@+id/sendFeedbackBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:onClick="sendFeedbackClick"
-                    android:text="@string/sendFeedback"
-                    tools:ignore="ButtonStyle">
-                </Button>
-
-                <Button
-                    android:id="@+id/dismissMessageBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:onClick="dismissTempMsg"
-                    android:text="@string/dismiss"
-                    tools:ignore="ButtonStyle">
-                </Button>
-            </LinearLayout>
-
-        </LinearLayout>
-
-        <!-- TODO: REMOVE LAYOUT EDITS TO SWIPELAYOUT WHEN TEXT INPUT IS FIXED -->
-        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-            android:id="@+id/swipeContainer"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-            <!-- android:layout_alignParentBottom="true" -->
-
-            <aliendrew.ms.stickynotes.NoTextCorrectionsWebView
-                android:id="@+id/webView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:visibility="invisible"
-                android:windowSoftInputMode="adjustResize" />
-
-        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
-    </LinearLayout>
-
-    <!--<LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
-
-        <net.dankito.richtexteditor.android.RichTextEditor
-            android:id="@+id/editor"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="10" />
-
-        <net.dankito.richtexteditor.android.toolbar.GroupedCommandsEditorToolbar
-            android:id="@+id/editorToolbar"
-            android:layout_width="match_parent"
-            android:layout_height="36dp"
-            android:background="@color/colorPrimary" />
-
-    </LinearLayout>-->
-
-    <!-- TODO: LOOKING INTO GECKOVIEW, APP REWRITE POSSIBLE -->
-    <!--<org.mozilla.geckoview.GeckoView
-        android:id="@+id/geckoview"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent" />-->
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 </RelativeLayout>

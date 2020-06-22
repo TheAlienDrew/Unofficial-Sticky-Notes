@@ -4,6 +4,8 @@
     <string name="splashImgDesc">Splash image for app launch</string>
     <string name="popupInfo"><b>If you want Microsoft to create a true standalone version of Sticky Notes as a separate app, please head to the <a href="https://www.change.org/standalone-sticky-notes-microsoft">petition</a> I created to make Sticky Notes a standalone app, and sign it.</b>
         \n\nThis app is open-sourced, so if you know how to code and want to help, check out the <a href="https://github.com/TheAlienDrew/Unofficial-Sticky-Notes">Unofficial Sticky Notes GitHub</a> page.
+        \n\n<b><u>News</u>:</b>
+        \n<li>Issues with some devices not being able to enter text appears to be fixed for now.</li>
         \n\n<b><u>Features</u>:</b>
         \n<li>Toggle between light, dark, and system themes via the volume keys.</li>
         \n<li>You can upload/download images to/from your device.</li>
@@ -19,12 +21,10 @@
         \n<li>Widgets for single notes (these won\'t be able to sync automatically).</li>
     </string>
     <string name="closeBtn">Close</string>
-    <string name="sendFeedback">Send Feedback</string>
-    <!-- required for my text fixes -->
-    <string name="editPlaceholder">Take a note…</string>
-    <!-- TODO: REMOVE BELOW ONCE TEXT INPUT IS FIXED -->
+    <!-- TODO: old code for text bug prompt (string constants), might be useful to repurpose as a "rating me" popup -->
+    <!--<string name="sendFeedback">Send Feedback</string>
     <string name="tempStringDark"><b><font color="#f44336">IMPORTANT!</font> If you can\'t type in any notes, then this is because of Microsoft introducing a new text bug that I can\'t fix. If you\'d like to have it fixed faster, please upvote the plea to get it fixed by clicking the corresponding button. If however it is working, please send me feedback about what keyboard you are using and what settings you\'ve applied.\n\nI\'ll remove this prompt after the bug is fixed.</b></string>
     <string name="tempStringLight"><b><font color="#b71c1c">IMPORTANT!</font> If you can\'t type in any notes, then this is because of Microsoft introducing a new text bug that I can\'t fix. If you\'d like to have it fixed faster, please upvote the plea to get it fixed by clicking the corresponding button. If however it is working, please send me feedback about what keyboard you are using and what settings you\'ve applied.\n\nI\'ll remove this prompt after the bug is fixed.</b></string>
     <string name="upvotePlea">Upvote Plea</string>
-    <string name="dismiss">Dismiss</string>
+    <string name="dismiss">Dismiss</string>-->
 </resources>

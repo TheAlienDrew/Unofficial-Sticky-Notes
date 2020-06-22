@@ -29,18 +29,6 @@ javascript:(function() {
         var elementExists = function(element) {
             return (typeof(element) != 'undefined' && element != null);
         };
-        // functions for temporary text edit fixes
-        /*var selectAll = function(element) {
-            var range = document.createRange();
-            range.selectNodeContents(element);
-            var selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-        };
-        var copyNote = function(element) {
-            selectAll(element);
-            document.execCommand('copy');
-        };*/
 
         // wait for loading animation to disappear before making webView visible (if on sticky notes page)
         if (currentURL == stickyNotesURL) {
@@ -154,21 +142,6 @@ javascript:(function() {
                         // finalize
                         window.Android.setCloseAvailable(elementExists(tempCloseButton), currentCloseButton);
                     }, slowDelay);
-
-                    // this allows android to edit note text until microsoft is smart enough to fix the website for android
-                    /*setInterval(function() { // TODO: THIS IS BASICALLY DONE, JUST THE FUNCTION IN MAIN DOESN'T SEEM TO WANT TO COPY TEXT WITH IT'S FORMATTING
-                        var editNote = document.querySelector(editableTextSelector);
-                        if (elementExists(editNote)) {
-                            // must be active to to edit
-                            if (document.activeElement == editNote && !editingNote) {
-                                editingNote = true;
-
-                                copyNote(editNote);
-                                window.Android.initEditNote();
-                            } else // committing changes is handled by android
-                                if (document.activeElement != editNote && editingNote) editingNote = false;
-                        } // else it doesn't exist yet
-                    });*/
 
                     /*var helpIFrameSelector = helpPaneSelector + ' iframe'; // TODO: DISABLED BECAUSE WEBVIEW DOESN'T ACTIVATE DYNAMIC JAVASCRIPT/CSS BEYOND THE FIRST IFRAME
                     var helpIFrameLoaded = false;
