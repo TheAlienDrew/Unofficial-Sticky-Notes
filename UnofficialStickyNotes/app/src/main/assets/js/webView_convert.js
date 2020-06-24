@@ -24,7 +24,8 @@ javascript:(function() {
         // theme changes based on url
         var currentURL = document.location.host + document.location.pathname;
         var tempImageFix = '.n-imageGalleryEdit-singleImage-FocusZone{padding-inline-start:0px}';
-        var themeCss = tempImageFix + '*{-webkit-tap-highlight-color:transparent}:focus{outline:0!important}html{position:fixed;height:100%;width:100%}'; // see app_conversion.css
+        var tempBulletFix = '.n-notePreviewContainer li{margin:0 0 0 -15px;list-style-type:initial}';
+        var themeCss = tempImageFix + tempBulletFix + '*{-webkit-tap-highlight-color:transparent}:focus{outline:0!important}html{position:fixed;height:100%;width:100%}'; // see app_conversion.css
         // function for elements
         var elementExists = function(element) {
             return (typeof(element) != 'undefined' && element != null);
