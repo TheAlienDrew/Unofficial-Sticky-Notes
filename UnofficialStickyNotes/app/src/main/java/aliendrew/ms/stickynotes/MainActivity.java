@@ -793,6 +793,11 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 }
             }
         });
+        // required to show profile pictures and allow longer login sessions
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+            CookieManager.getInstance().setAcceptThirdPartyCookies(webStickies, true);
+        else
+            CookieManager.getInstance().setAcceptCookie(true);
         // allows for caching the website when using it offline
         webSettings.setAppCachePath(getApplicationContext().getCacheDir().getAbsolutePath());
         webSettings.setAllowFileAccess(true); // TODO: DISABLE THIS IF I DON'T NEED TO ACCESS A PHYSICAL LOCATION TO USE DYNAMIC IMAGES / CHECK IF REMOVING THIS BREAKS CACHE

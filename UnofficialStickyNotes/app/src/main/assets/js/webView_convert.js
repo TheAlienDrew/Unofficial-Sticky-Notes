@@ -161,9 +161,6 @@ javascript:(function() {
                     }
                     checkForHelp();*/
 
-                    // TODO: testing... need to get 'no extension' (dynamic) images to load
-                    // use 'offline' variable from MainActivity to determine re-downloading of dynamic image(s)
-
                     // execute once to determine swipe at page load
                     window.Android.setSwipeRefresher(noteListContainer.scrollTop);
                     // set webView to visible
