@@ -39,6 +39,7 @@ import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -91,6 +92,17 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.google.android.material.snackbar.Snackbar;
+import com.google.android.play.core.appupdate.AppUpdateInfo;
+import com.google.android.play.core.appupdate.AppUpdateManager;
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory;
+import com.google.android.play.core.install.InstallState;
+import com.google.android.play.core.install.InstallStateUpdatedListener;
+import com.google.android.play.core.install.model.AppUpdateType;
+import com.google.android.play.core.install.model.InstallStatus;
+import com.google.android.play.core.install.model.UpdateAvailability;
+import com.google.android.play.core.tasks.Task;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -110,8 +122,9 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     //                          STICKY_HELP_URL_START: normally this host + path is for any MS app, but in our case, it'll only lead to the Sticky Notes help page
     private static final String APP_VERSION = BuildConfig.VERSION_NAME;
     private static final String APP_NAME = "Unofficial Sticky Notes";
-    private static final String DEV_EMAIL = "thealiendrew@gmail.com";
-    private static final String FEEDBACK_EMAIL_HEADER = APP_NAME+" ("+APP_VERSION+") User Feedback | Device: "+Build.MANUFACTURER+' '+Build.DEVICE+" ("+Build.MODEL+") API: "+Build.VERSION.SDK_INT;
+    // TODO: the following commented out old code for text bug prompt (strings), might be useful to repurpose as a "rating me" popup
+    //private static final String DEV_EMAIL = "thealiendrew@gmail.com";
+    //private static final String FEEDBACK_EMAIL_HEADER = APP_NAME+" ("+APP_VERSION+") User Feedback | Device: "+Build.MANUFACTURER+' '+Build.DEVICE+" ("+Build.MODEL+") API: "+Build.VERSION.SDK_INT;
     private static final String POPUP_TITLE = APP_NAME + " v" + APP_VERSION;
     private static final String SAVE_DIRECTORY = Environment.DIRECTORY_PICTURES + File.separator + APP_NAME;
     // user locale
@@ -161,8 +174,10 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     // for first time use
     private Dialog popupDialog;
     private WindowManager.LayoutParams popupLayoutParams;
+    private static final int APP_UPDATE_REQUEST_CODE = 180;
     private static final String PREF_VERSION_USED = "version_used";
     private boolean updatedToNewVersion = false;
+    private AppUpdateManager appUpdateManager;
 
     // webView variables
     private WebView webLoadingDark;
@@ -380,10 +395,54 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 }
             }
         }
+        // if we are doing an update, show the following
+        if (requestCode == APP_UPDATE_REQUEST_CODE) {
+            if (resultCode != Activity.RESULT_OK) {
+                Toast.makeText(this,
+                        "App Update failed, please try again on the next app launch.",
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
 
         file_path.onReceiveValue(results);
         file_path = null;
     }
+
+    // update snackbar function (for user to chose when to update)
+    private void popupSnackbarForCompleteUpdate() {
+        Snackbar snackbar =
+                Snackbar.make(
+                        findViewById(R.id.relativeLayout),
+                        "An update has just been downloaded.",
+                        Snackbar.LENGTH_INDEFINITE);
+        View snackBarView = snackbar.getView();
+
+        snackbar.setAction("RESTART", view -> {
+            if (appUpdateManager != null) { appUpdateManager.completeUpdate(); }
+        });
+
+        if (useDarkTheme) {
+            snackBarView.setBackgroundColor(ContextCompat.getColor(this, R.color.colorDarkPrimary));
+            snackbar.setActionTextColor(ContextCompat.getColor(this, R.color.colorAccent));
+        } else {
+            snackBarView.setBackgroundColor(ContextCompat.getColor(this, R.color.colorLightPrimary));
+            snackbar.setActionTextColor(ContextCompat.getColor(this, R.color.colorAccentDark));
+        }
+
+        snackbar.show();
+    }
+    InstallStateUpdatedListener installStateUpdatedListener = new InstallStateUpdatedListener() {
+        @Override
+        public void onStateUpdate(InstallState state) {
+            if (state.installStatus() == InstallStatus.DOWNLOADED){
+                popupSnackbarForCompleteUpdate();
+            } else if (state.installStatus() == InstallStatus.INSTALLED) {
+                if (appUpdateManager != null) { appUpdateManager.unregisterListener(installStateUpdatedListener); }
+            } else {
+                Log.i(TAG, "InstallStateUpdatedListener: state: " + state.installStatus());
+            }
+        }
+    };
 
     // altered clients to work with sticky notes
     public class ChromeClient extends WebChromeClient {
@@ -877,6 +936,77 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         }
     }
 
+    // what to do when the app starts
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // check for updates
+        appUpdateManager = AppUpdateManagerFactory.create(this);
+        Task<AppUpdateInfo> appUpdateInfoTask = appUpdateManager.getAppUpdateInfo();
+        appUpdateInfoTask.addOnSuccessListener(appUpdateInfo -> {
+            // check update exists
+            if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
+                // start type of update if needed
+                try {
+                    int installType; // where -1 will be neither
+                    if (appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) {
+                        installType = AppUpdateType.FLEXIBLE;
+                    } else if (appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
+                        installType = AppUpdateType.IMMEDIATE;
+                    } else {
+                        installType = -1;
+                    }
+
+                    // do update if one is real
+                    if (installType >= 0) {
+                        if (installType == AppUpdateType.FLEXIBLE) {
+                            appUpdateManager.registerListener(installStateUpdatedListener);
+                        }
+
+                        appUpdateManager.startUpdateFlowForResult(appUpdateInfo,
+                                installType, this, APP_UPDATE_REQUEST_CODE);
+                    }
+                } catch (IntentSender.SendIntentException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    // what to do after the app resumes
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Task<AppUpdateInfo> appUpdateInfoTask = appUpdateManager.getAppUpdateInfo();
+        appUpdateInfoTask.addOnSuccessListener(appUpdateInfo -> {
+            // if update download, and not installed, ask user to restart
+            if (appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED) {
+                popupSnackbarForCompleteUpdate();
+            }
+
+            // otherwise, check for an immediate update
+            try {
+                if (appUpdateInfo.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
+                    // if in-app update is already running, resume it
+                    appUpdateManager.startUpdateFlowForResult(appUpdateInfo,
+                            AppUpdateType.IMMEDIATE, this, APP_UPDATE_REQUEST_CODE);
+                }
+            } catch (IntentSender.SendIntentException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    // what to do after the app stops
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // stop the update listener
+        if (appUpdateManager != null) {
+            appUpdateManager.unregisterListener(installStateUpdatedListener);
+        }
+    }
+
     // make back button exit app
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -1069,12 +1199,9 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         // load help in fullscreen
         @JavascriptInterface
         public void loadStickiesHelp() {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    webStickies.setVisibility(View.INVISIBLE);
-                    internetCacheLoad(webStickies, (useDarkTheme ? DARK_STICKY_HELP_URL : LIGHT_STICKY_HELP_URL));
-                }
+            runOnUiThread(() -> {
+                webStickies.setVisibility(View.INVISIBLE);
+                internetCacheLoad(webStickies, (useDarkTheme ? DARK_STICKY_HELP_URL : LIGHT_STICKY_HELP_URL));
             });
         }
     }

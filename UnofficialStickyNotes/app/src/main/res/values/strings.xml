@@ -5,7 +5,7 @@
     <string name="popupInfo"><b>If you want Microsoft to create a true standalone version of Sticky Notes as a separate app, please head to the <a href="https://www.change.org/standalone-sticky-notes-microsoft">petition</a> I created to make Sticky Notes a standalone app, and sign it.</b>
         \n\nThis app is open-sourced, so if you know how to code and want to help, check out the <a href="https://github.com/TheAlienDrew/Unofficial-Sticky-Notes">Unofficial Sticky Notes GitHub</a> page.
         \n\n<b><u>News</u>:</b>
-        \n<li>Issues with some devices not being able to enter text appears to be fixed for now.</li>
+        \n<li>The app will now automatically ask to update when there is a new update available.</li>
         \n\n<b><u>Features</u>:</b>
         \n<li>Toggle between light, dark, and system themes via the volume keys.</li>
         \n<li>You can upload/download images to/from your device.</li>
