@@ -111,7 +111,10 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -408,7 +411,18 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         file_path = null;
     }
 
-    // update snackbar function (for user to chose when to update)
+    // check if app is installed from Google Play Store
+    // code via https://stackoverflow.com/a/37540163/7312536
+    boolean verifyInstallerId(Context context) {
+        // A list with valid installers package name
+        List<String> validInstallers = new ArrayList<>(Arrays.asList("com.android.vending", "com.google.android.feedback"));
+        // The package name of the app that has installed your app
+        final String installer = context.getPackageManager().getInstallerPackageName(context.getPackageName());
+        // true if your app has been downloaded from Play Store
+        return installer != null && validInstallers.contains(installer);
+    }
+
+    // in-app update functions
     private void popupSnackbarForCompleteUpdate() {
         Snackbar snackbar =
                 Snackbar.make(
@@ -946,28 +960,51 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         appUpdateInfoTask.addOnSuccessListener(appUpdateInfo -> {
             // check update exists
             if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
-                // start type of update if needed
-                try {
-                    int installType; // where -1 will be neither
-                    if (appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) {
-                        installType = AppUpdateType.FLEXIBLE;
-                    } else if (appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
-                        installType = AppUpdateType.IMMEDIATE;
-                    } else {
-                        installType = -1;
-                    }
-
-                    // do update if one is real
-                    if (installType >= 0) {
-                        if (installType == AppUpdateType.FLEXIBLE) {
-                            appUpdateManager.registerListener(installStateUpdatedListener);
+                // do alternate prompt for non play store users
+                if (verifyInstallerId(this)) {
+                    // start type of update if needed
+                    try {
+                        int installType; // where -1 will be neither
+                        if (appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) {
+                            installType = AppUpdateType.FLEXIBLE;
+                        } else if (appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
+                            installType = AppUpdateType.IMMEDIATE;
+                        } else {
+                            installType = -1;
                         }
 
-                        appUpdateManager.startUpdateFlowForResult(appUpdateInfo,
-                                installType, this, APP_UPDATE_REQUEST_CODE);
+                        // do update if one is real
+                        if (installType >= 0) {
+                            if (installType == AppUpdateType.FLEXIBLE) {
+                                appUpdateManager.registerListener(installStateUpdatedListener);
+                            }
+
+                            appUpdateManager.startUpdateFlowForResult(appUpdateInfo,
+                                    installType, this, APP_UPDATE_REQUEST_CODE);
+                        }
+                    } catch (IntentSender.SendIntentException e) {
+                        e.printStackTrace();
                     }
-                } catch (IntentSender.SendIntentException e) {
-                    e.printStackTrace();
+                } else {
+                    // show a prompt for other app stores // TODO: Maybe use remnants of text bug prompt for this instead
+                    String otherInstaller = getPackageManager().getInstallerPackageName(getPackageName());
+
+                    final AlertDialog otherInstallerDialog = createAlertDialog(MainActivity.this);
+                    otherInstallerDialog.setTitle("New update available!");
+                    otherInstallerDialog.setMessage("Please visit \"" + otherInstaller
+                            + "\" in order to update to the newest version of Unofficial Sticky Notes. Or alternatively, go to the Google Play Store and install the update.");
+                    otherInstallerDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Dismiss", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            otherInstallerDialog.dismiss();
+                        }
+                    });
+                    otherInstallerDialog.setOnShowListener(new DialogInterface.OnShowListener() {
+                        @Override
+                        public void onShow(DialogInterface arg0) {
+                            alertDialogThemeButtons(MainActivity.this, otherInstallerDialog);
+                        }
+                    });
+                    otherInstallerDialog.show();
                 }
             }
         });
@@ -979,20 +1016,23 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         super.onResume();
         Task<AppUpdateInfo> appUpdateInfoTask = appUpdateManager.getAppUpdateInfo();
         appUpdateInfoTask.addOnSuccessListener(appUpdateInfo -> {
-            // if update download, and not installed, ask user to restart
-            if (appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED) {
-                popupSnackbarForCompleteUpdate();
-            }
-
-            // otherwise, check for an immediate update
-            try {
-                if (appUpdateInfo.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
-                    // if in-app update is already running, resume it
-                    appUpdateManager.startUpdateFlowForResult(appUpdateInfo,
-                            AppUpdateType.IMMEDIATE, this, APP_UPDATE_REQUEST_CODE);
+            // make sure it was originally installed from play store to do this kind of update
+            if (verifyInstallerId(this)) {
+                // if update download, and not installed, ask user to restart
+                if (appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED) {
+                    popupSnackbarForCompleteUpdate();
                 }
-            } catch (IntentSender.SendIntentException e) {
-                e.printStackTrace();
+
+                // otherwise, check for an immediate update
+                try {
+                    if (appUpdateInfo.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
+                        // if in-app update is already running, resume it
+                        appUpdateManager.startUpdateFlowForResult(appUpdateInfo,
+                                AppUpdateType.IMMEDIATE, this, APP_UPDATE_REQUEST_CODE);
+                    }
+                } catch (IntentSender.SendIntentException e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
@@ -1001,8 +1041,8 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        // stop the update listener
-        if (appUpdateManager != null) {
+        // stop the update listener, if it was ever started
+        if (verifyInstallerId(this) && appUpdateManager != null) {
             appUpdateManager.unregisterListener(installStateUpdatedListener);
         }
     }
