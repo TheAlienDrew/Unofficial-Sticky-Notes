@@ -885,6 +885,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         webStickies.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
         webStickies.setVerticalScrollBarEnabled(false);
         webStickies.setHorizontalScrollBarEnabled(false);
+        webSettings.setTextZoom(100);
 
         // start the webView
         internetCacheLoad(webStickies, STICKY_NOTES_URL);
