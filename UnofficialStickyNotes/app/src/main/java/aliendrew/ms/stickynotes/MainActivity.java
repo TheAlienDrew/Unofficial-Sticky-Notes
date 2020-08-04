@@ -779,7 +779,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         webStickies = findViewById(R.id.webView);
         theWebView = webStickies; // NEEDED FOR ImmersiveAppCompatActivity!
         final WebSettings webSettings = webStickies.getSettings();
-        WebView.setWebContentsDebuggingEnabled(true); // TODO: turn off before official builds
+        //WebView.setWebContentsDebuggingEnabled(true); // TODO: turn off before official builds
 
         if (useDarkTheme) {
             swipeRefresher.setColorSchemeResources(R.color.colorAccent);
@@ -873,13 +873,11 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             CookieManager.getInstance().setAcceptCookie(true);
         // allows for caching the website when using it offline
         webSettings.setAppCachePath(getApplicationContext().getCacheDir().getAbsolutePath());
-        webSettings.setAllowFileAccess(true); // TODO: DISABLE THIS IF I DON'T NEED TO ACCESS A PHYSICAL LOCATION TO USE DYNAMIC IMAGES / CHECK IF REMOVING THIS BREAKS CACHE
         webSettings.setAppCacheEnabled(true);
         // enables site to work
         webStickies.clearCache(false);
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
-        webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW); // TODO: MAY NOT NEED AFTER FIXING DYNAMIC PROFILE PICTURES
         webStickies.addJavascriptInterface(new StickiesJS(), "Android");
         // visual fixes
         webStickies.setOverScrollMode(WebView.OVER_SCROLL_NEVER);
