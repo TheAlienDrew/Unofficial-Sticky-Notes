@@ -779,7 +779,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         webStickies = findViewById(R.id.webView);
         theWebView = webStickies; // NEEDED FOR ImmersiveAppCompatActivity!
         final WebSettings webSettings = webStickies.getSettings();
-        //WebView.setWebContentsDebuggingEnabled(true); // TODO: turn off before official builds
+        WebView.setWebContentsDebuggingEnabled(true); // TODO: turn off before official builds
 
         if (useDarkTheme) {
             swipeRefresher.setColorSchemeResources(R.color.colorAccent);
@@ -1075,6 +1075,11 @@ public class MainActivity extends ImmersiveAppCompatActivity {
 
             // if there is an active close button in sticky notes, click it
             if (closeButtonActive) {
+                // fix immersive mode back to normal
+                if (closeButtonSelector.equals(".n-lightbox-close")) {
+                    getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+                }
+
                 webStickies.evaluateJavascript("javascript: document.querySelector('"+closeButtonSelector+"').click()", null);
                 return true;
             }
@@ -1222,13 +1227,13 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         public void setCloseAvailable(final boolean availability, final String elementToClick) {
             closeButtonActive = availability;
             closeButtonSelector = elementToClick;
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (elementToClick.equals(".n-lightbox-close")) getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
+                }
+            });
         }
-
-        // TODO: testing... need to get 'no extension' (dynamic) images to load
-        // use 'offline' variable from MainActivity to determine re-downloading of dynamic image(s)
-        // need a function that downloads/applies the dynamic images when online, or appies the old
-        //   image saved as local file in private app storage... first download needs to save file
-        //   to private storage.
 
         // loads the specific theme url
         @JavascriptInterface

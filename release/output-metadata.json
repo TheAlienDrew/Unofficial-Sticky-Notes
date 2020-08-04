@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "artifactType": {
+    "type": "APK",
+    "kind": "Directory"
+  },
+  "applicationId": "aliendrew.ms.stickynotes",
+  "variantName": "release",
+  "elements": [
+    {
+      "type": "SINGLE",
+      "filters": [],
+      "properties": [],
+      "versionCode": 53,
+      "versionName": "2.8.1",
+      "enabled": true,
+      "outputFile": "app-release.apk"
+    }
+  ]
+}
