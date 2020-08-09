@@ -11,9 +11,9 @@
    height="256"
    version="1.1"
    id="svg6386"
-   sodipodi:docname="unofficial_sticky_notes.svg"
+   sodipodi:docname="unofficial_sticky_notes-overlay.svg"
    inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
-   inkscape:export-filename="C:\Users\Andrew\Documents\GitHub\Unofficial-Sticky-Notes\graphics\icons\square icons\full\ic_launcher-full-680\432.png"
+   inkscape:export-filename="C:\Users\Andrew\Documents\GitHub\Unofficial-Sticky-Notes\graphics\icons\text overlays\padded\512.png"
    inkscape:export-xdpi="192"
    inkscape:export-ydpi="192">
   <metadata
@@ -24,7 +24,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -43,9 +43,9 @@
      inkscape:window-height="877"
      id="namedview6388"
      showgrid="true"
-     inkscape:zoom="2.2817288"
-     inkscape:cx="-52.70303"
-     inkscape:cy="129.24619"
+     inkscape:zoom="1.6134259"
+     inkscape:cx="38.776006"
+     inkscape:cy="132.00391"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
@@ -55,10 +55,6 @@
        type="xygrid"
        id="grid7214" />
   </sodipodi:namedview>
-  <path
-     style="fill:#00ffe3;stroke:none;fill-opacity:1"
-     d="M 20 20 L 20 236 L 236 236 L 236 20 L 20 20 z M 128 128 L 235.99805 128 L 128 235.99609 L 128 128 z "
-     id="path6382" />
   <g
      inkscape:groupmode="layer"
      id="layer1"

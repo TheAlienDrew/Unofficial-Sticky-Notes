@@ -4,6 +4,6 @@
     <color name="colorLightPrimaryDark">#CCCCCC</color>
     <color name="colorDarkPrimaryLight">#4F4F4F</color>
     <color name="colorDarkPrimary">#3D3D3D</color>
-    <color name="colorAccent">#00ffe3</color>
+    <color name="colorAccent">#00f4fe</color>
     <color name="colorAccentDark">#007F71</color>
 </resources>

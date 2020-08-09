@@ -11,11 +11,11 @@
    height="216"
    version="1.1"
    id="svg6386"
-   sodipodi:docname="unofficial_sticky_notes-converted-text.svg"
+   sodipodi:docname="unofficial_sticky_notes_converted-text-overlay.svg"
    inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
-   inkscape:export-filename="C:\Users\Andrew\Documents\GitHub\Unofficial-Sticky-Notes\graphics\icons\32.png"
-   inkscape:export-xdpi="12"
-   inkscape:export-ydpi="12">
+   inkscape:export-filename="C:\Users\Andrew\Documents\GitHub\Unofficial-Sticky-Notes\graphics\icons\text overlays\no padding\256.png"
+   inkscape:export-xdpi="113.77778"
+   inkscape:export-ydpi="113.77778">
   <metadata
      id="metadata6392">
     <rdf:RDF>
@@ -44,8 +44,8 @@
      id="namedview6388"
      showgrid="true"
      inkscape:zoom="2"
-     inkscape:cx="152.60348"
-     inkscape:cy="82.887894"
+     inkscape:cx="-77.89652"
+     inkscape:cy="126.88789"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
@@ -57,11 +57,6 @@
        originx="-20"
        originy="-20" />
   </sodipodi:namedview>
-  <path
-     style="fill:#00ffe3;fill-opacity:1;stroke:none"
-     d="M 0,0 V 216 H 216 V 0 Z M 108,108 H 215.99805 L 108,215.99609 Z"
-     id="path6382"
-     inkscape:connector-curvature="0" />
   <g
      inkscape:groupmode="layer"
      id="layer1"
