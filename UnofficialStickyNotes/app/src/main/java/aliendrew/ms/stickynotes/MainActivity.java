@@ -407,8 +407,10 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             }
         }
 
-        file_path.onReceiveValue(results);
-        file_path = null;
+        if (results != null) {
+            file_path.onReceiveValue(results);
+            file_path = null;
+        }
     }
 
     // check if app is installed from Google Play Store
