@@ -7,7 +7,9 @@ You can download the app from 4+ locations so far:
 * [XDA Labs](https://labs.xda-developers.com/store/app/aliendrew.ms.stickynotes)
 * [Aptoide](https://aliendrew-stickynotes.en.aptoide.com/?store_name=aliendrew)
 
-And any Google Play mirrors, such as, but not limited to, APKPure.
+And any Google Play mirrors, such as, but not limited to:
+* [APKMirror](https://www.apkmirror.com/apk/aliendrew/unofficial-sticky-notes)
+* [APKPure](https://apkpure.com/unofficial-sticky-notes/aliendrew.ms.stickynotes)
 
 If you'd like to download an older version of the app, all the way to the first version (I don't know why you would), they are located [here](https://aliendrew-stickynotes.en.aptoide.com/versions).
 
