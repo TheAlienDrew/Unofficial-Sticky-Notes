@@ -185,7 +185,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     // webView variables
     private WebView webLoadingDark;
     private WebView webLoadingLight;
-    private NoTextCorrectionsWebView webStickies;
+    private WebView webStickies;
 
     // TODO: old code for text bug prompt (theming), might be useful to repurpose as a "rating me" popup
     /*LinearLayout tempLinear;

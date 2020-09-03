@@ -23,9 +23,8 @@ javascript:(function() {
         const helpButtonSelector = '#O365_MainLink_Help_container';
         // theme changes based on url
         var currentURL = document.location.host + document.location.pathname;
-        var tempImageFix = '.n-imageGalleryEdit-singleImage-FocusZone{padding-inline-start:0px}';
         var tempBulletFix = '.n-notePreviewContainer li{margin:0 0 0 -25px;list-style-type:initial}.public-DraftStyleDefault-ul li{margin:0 0 0 -25px}';
-        var themeCss = tempImageFix + tempBulletFix + '*{-webkit-tap-highlight-color:transparent}:focus{outline:0!important}html{position:fixed;height:100%;width:100%}'; // see app_conversion.css
+        var themeCss = tempBulletFix + '*{-webkit-tap-highlight-color:transparent}:focus{outline:0!important}html{position:fixed;height:100%;width:100%}'; // see app_conversion.css
         // function for elements
         var elementExists = function(element) {
             return (typeof(element) != 'undefined' && element != null);
@@ -33,7 +32,7 @@ javascript:(function() {
 
         // wait for loading animation to disappear before making webView visible (if on sticky notes page)
         if (currentURL == stickyNotesURL) {
-            themeCss += '#O365_HeaderLeftRegion{display:none}.n-Phone .n-noteFocus{margin:0 0}';
+            themeCss += '#O365_HeaderLeftRegion{display:none}';
             var checkLoading = setInterval(function() {
                 var sidePane = document.querySelector(sidePaneSelector);
                 var noteListContainer = document.querySelector(noteListContainerSelector);

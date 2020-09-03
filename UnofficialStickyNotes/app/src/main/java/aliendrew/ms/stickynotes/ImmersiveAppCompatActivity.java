@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.webkit.WebView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,7 +18,7 @@ public abstract class ImmersiveAppCompatActivity extends AppCompatActivity {
 
     private static boolean softKeyboardOpen = false;
     public static boolean keepNavBar = false;
-    public NoTextCorrectionsWebView theWebView;
+    public WebView theWebView;
 
     public static boolean keyboardVisible() {
         return softKeyboardOpen;

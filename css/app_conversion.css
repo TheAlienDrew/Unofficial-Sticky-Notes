@@ -30,11 +30,6 @@ html {
 	display: none
 }
 
-/* Make the note fill up full phone space when editing */
-.n-Phone .n-noteFocus {
-    margin: 0 0
-}
-
 /* the following are to disable the floating add note button, 
    it was disabled when it wasn't working, so I'll leave it here if it
    ever happens again */
