@@ -886,6 +886,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         webStickies.setVerticalScrollBarEnabled(false);
         webStickies.setHorizontalScrollBarEnabled(false);
         webSettings.setTextZoom(100);
+        webStickies.setVisibility(View.VISIBLE); // TODO: REMOVE ME
 
         // start the webView
         internetCacheLoad(webStickies, STICKY_NOTES_URL);
