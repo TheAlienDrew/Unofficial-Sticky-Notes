@@ -15,7 +15,7 @@ javascript:(function() {
         const imageAltTextCancelSelector = '.n-imageAltTextCancel';
         const noteEditCloseButtonSelector = '.n-noteEdit-closeButton';
         const noteSelector = '.n-note';
-        const noteListContainerSelector = '.n-noteList-Container';
+        const noteListContainerSelector = '.n-noteListContainer';
         const noteListSelector = '.n-noteList';
         const notePreviewSelector = 'n-noteList-notePreviewWrapper';
         const helpPaneSelector = '#helpPaneFull'; // TODO: Required for fall back of help page
