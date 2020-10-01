@@ -5,7 +5,6 @@ javascript:(function() {
         // loading gif constants
         const loadingGifDark = 'https://npwuscdn-onenote.azureedge.net/ondcnotesintegration/img/loading-dark.gif';
         const loadingGifSelector = '#n-side-pane > div.n-side-pane-content > div > div > div > img';
-        const limitTimeout = 100; // 100 * 10 ms = 1 second
         // theme changes based on url
         var currentUrl = document.location.host + document.location.pathname;
         // see the the text file that contains the link to the dark theme
@@ -27,16 +26,12 @@ javascript:(function() {
         // fix other theme related issues
         if (currentUrl == stickyNotesURL) {
             // fix issues with loading gif being light
-            var limiter = 0;
             var loadingGif = null;
             var fixLoadingGif = setInterval(function() {
                 loadingGif = document.querySelector(loadingGifSelector);
                 if (typeof(loadingGif) != 'undefined' && loadingGif != null) {
                     clearInterval(fixLoadingGif);
                     loadingGif.src = loadingGifDark;
-                } else {
-                    if (limiter == 10) { clearInterval(fixLoadingGif); }
-                    else { limiter++; }
                 }
             }, 10);
         }
