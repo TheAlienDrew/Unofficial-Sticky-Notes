@@ -41,7 +41,7 @@ javascript:(function() {
                 var helpPaneExists = false;
                 var closeButtonActive = false;
                 var editingNote = false;
-                if(elementExists(noteList) && sidePane.childElementCount == 2) {
+                if(elementExists(noteList) && sidePane.childElementCount >= 1) {
                     clearInterval(checkLoading);
 
                     // scrolling note list checks swipe
