@@ -14,11 +14,13 @@ javascript:(function() {
         const lightBoxCloseSelector = '.n-lightbox-close';
         const warningCancelSelector = '.n-warningCancel';
         const imageAltTextCancelSelector = '.n-imageAltTextCancel';
-        const noteEditCloseButtonSelector = '.n-noteEdit-closeButton';
+        const noteDeleteCloseButtonSelector = '.n-cancelButton';
+        const noteEditCloseButtonSelector = '.n-closeDetailViewButton';
+        const noteEditContainerSelector = '.n-detailViewContainer';
         const noteSelector = '.n-note';
         const noteListContainerSelector = '.n-noteListContainer';
         const noteListSelector = '.n-noteList';
-        const notePreviewSelector = 'n-noteList-notePreviewWrapper';
+        const noteListCellClassName = 'ms-List-cell';
         const loadingAnimationContainerSelector = '.n-loadingAnimationContainer';
         const helpPaneSelector = '#helpPaneFull'; // TODO: Required for fall back of help page
         const editableTextSelector = 'div[contenteditable="true"].n-slateEditorRoot';
@@ -31,8 +33,15 @@ javascript:(function() {
         var elementExists = function(element) {
             return (typeof(element) != 'undefined' && element != null);
         };
+        // function for figuring out if edit note is active on phone view
+        var isEditing = function() {
+            var noteEditContainer = document.querySelector(noteEditContainerSelector);
+            if (elementExists(noteEditContainer) && !noteEditContainer.classList.contains('inactive') && !noteEditContainer.classList.contains('n-noteSelected')) return true;
+            else return false;
+        };
 
         // wait for loading animation to appear then disappear before making webView visible (if on sticky notes page)
+        var editingActive = 0;
         if (currentURL == stickyNotesURL) {
             themeCss += '#O365_HeaderLeftRegion{display:none}';
             var checkLoading = setInterval(function() {
@@ -47,27 +56,29 @@ javascript:(function() {
 
                             var sidePane = document.querySelector(sidePaneSelector);
                             var noteListContainer = document.querySelector(noteListContainerSelector);
-                            var notePreview = document.getElementsByClassName(notePreviewSelector);
+                            var noteListCell = document.getElementsByClassName(noteListCellClassName);
                             var helpPaneExists = false;
                             var closeButtonActive = false;
                             var editingNote = false;
 
                             // scrolling note list checks swipe
                             noteListContainer.addEventListener('touchmove', function(e) {
-                                window.Android.setSwipeRefresher(noteListContainer.scrollTop);
+                                editingActive = isEditing();
+                                window.Android.setSwipeRefresher(noteListContainer.scrollTop, editingActive);
                             }, false);
                             // pressing in note list checks swipe
                             noteListContainer.addEventListener('touchstart', function(e) {
-                                window.Android.setSwipeRefresher(noteListContainer.scrollTop);
+                                editingActive = isEditing();
+                                window.Android.setSwipeRefresher(noteListContainer.scrollTop, editingActive);
                             }, false);
                             // after clicking a note in list, disable swipe
                             setInterval(function() {
                                 var i;
-                                for (i = 0; i < notePreview.length; ++i) {
+                                for (i = 0; i < noteListCell.length; ++i) {
                                     // needs to always check
 
-                                    notePreview[i].onclick = function () {
-                                        window.Android.setSwipeRefresher(disableSwipe);
+                                    noteListCell[i].onclick = function () {
+                                        window.Android.setSwipeRefresher(disableSwipe, disableSwipe);
                                         editingNote = false; // needed to copy note data from another note when in tablet mode
                                     };
                                 }
@@ -89,7 +100,7 @@ javascript:(function() {
                                 if (elementExists(helpPane) && !helpPaneExists) {
                                     // needs to always check
 
-                                    window.Android.setSwipeRefresher(disableSwipe);
+                                    window.Android.setSwipeRefresher(disableSwipe, disableSwipe);
                                     if (window.Android.isDarkMode()) helpPane.style = "filter:invert(100%)hue-rotate(180deg)";
                                     helpPaneExists = true;
                                 } else helpPaneExists = false;
@@ -103,7 +114,7 @@ javascript:(function() {
                                     note.onclick = function () {
                                         // check classlist for inactivity
                                         if (!note.classList.contains('inactive')) {
-                                            window.Android.setSwipeRefresher(disableSwipe);
+                                            window.Android.setSwipeRefresher(disableSwipe, disableSwipe);
                                         }
                                     };
                                 }
@@ -115,7 +126,8 @@ javascript:(function() {
                                     clearInterval(waitForClose)
 
                                     noteEditCloseButton.onclick = function () {
-                                        window.Android.setSwipeRefresher(noteListContainer.scrollTop);
+                                        editingActive = isEditing();
+                                        window.Android.setSwipeRefresher(noteListContainer.scrollTop, editingActive);
                                     };
                                 }
                             }, slowDelay);
@@ -135,13 +147,18 @@ javascript:(function() {
                                         tempCloseButton = document.querySelector(lightBoxCloseSelector);
                                         if (elementExists(tempCloseButton)) currentCloseButton = lightBoxCloseSelector;
                                         else {
-                                            // fourth, see if edit note close button exists and is visible
-                                            tempCloseButton = document.querySelector(noteEditCloseButtonSelector);
-                                            if (elementExists(tempCloseButton) && window.getComputedStyle(document.querySelector(noteEditCloseButtonSelector)).visibility == 'visible') currentCloseButton = noteEditCloseButtonSelector;
+                                            // fourth, see if delete note close button exists
+                                            tempCloseButton = document.querySelector(noteDeleteCloseButtonSelector);
+                                            if (elementExists(tempCloseButton)) currentCloseButton = noteDeleteCloseButtonSelector;
                                             else {
-                                                // lastly, see if help close button exists
-                                                tempCloseButton = document.querySelector(flexPaneCloseButtonSelector);
-                                                if (elementExists(tempCloseButton)) currentCloseButton = flexPaneCloseButtonSelector;
+                                                // fifth, see if edit note close button exists and is visible
+                                                tempCloseButton = document.querySelector(noteEditCloseButtonSelector);
+                                                if (elementExists(tempCloseButton) && window.getComputedStyle(document.querySelector(noteEditCloseButtonSelector)).visibility == 'visible') currentCloseButton = noteEditCloseButtonSelector;
+                                                else {
+                                                    // lastly, see if help close button exists
+                                                    tempCloseButton = document.querySelector(flexPaneCloseButtonSelector);
+                                                    if (elementExists(tempCloseButton)) currentCloseButton = flexPaneCloseButtonSelector;
+                                                }
                                             }
                                         }
                                     }
@@ -170,7 +187,8 @@ javascript:(function() {
                             checkForHelp();*/
 
                             // execute once to determine swipe at page load
-                            window.Android.setSwipeRefresher(noteListContainer.scrollTop);
+                            editingActive = isEditing();
+                            window.Android.setSwipeRefresher(noteListContainer.scrollTop, editingActive);
                             // set webView to visible
                             window.Android.webViewSetVisible();
                         }
@@ -194,7 +212,7 @@ javascript:(function() {
                         document.getElementsByClassName('form-group')[1].appendChild(newSignUp);
                     }
 
-                    window.Android.setSwipeRefresher(disableSwipe);
+                    window.Android.setSwipeRefresher(disableSwipe, disableSwipe);
                     window.Android.webViewSetVisible();
                 }
             }, fastDelay);

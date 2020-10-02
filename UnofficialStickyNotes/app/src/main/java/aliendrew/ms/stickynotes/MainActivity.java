@@ -1207,12 +1207,12 @@ public class MainActivity extends ImmersiveAppCompatActivity {
 
         // soft keyboard open or being at anywhere but the top of the page will disable swipe to refresh
         @JavascriptInterface
-        public void setSwipeRefresher(final int scrollTop) {
+        public void setSwipeRefresher(final int scrollTop, final boolean editActive) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    // enable if less than or equal to minimum scrollTop, otherwise, disable
-                    if (!keyboardVisible() && (scrollTop <= 0)) {
+                    // enable if phone edit is inactive and less than or equal to minimum scrollTop, otherwise, disable
+                    if (!keyboardVisible() && (scrollTop <= 0) && !editActive) {
                         swipeRefresher.setEnabled(true);
                     } else {
                         swipeRefresher.setEnabled(false);

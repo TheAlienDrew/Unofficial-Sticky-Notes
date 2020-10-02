@@ -7,8 +7,8 @@ android {
         applicationId "aliendrew.ms.stickynotes"
         minSdkVersion 21
         targetSdkVersion 29
-        versionCode 62
-        versionName "2.9.0"
+        versionCode 63
+        versionName "2.9.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
