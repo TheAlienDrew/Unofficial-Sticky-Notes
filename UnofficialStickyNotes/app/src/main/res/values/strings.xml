@@ -5,17 +5,17 @@
     <string name="popupInfo"><b>If you want Microsoft to create a true standalone version of Sticky Notes as a separate app, please head to the <a href="https://www.change.org/standalone-sticky-notes-microsoft">petition</a> I created to make Sticky Notes a standalone app, and sign it.</b>
         \n\nThis app is open-sourced, so if you know how to code and want to help, check out the <a href="https://github.com/TheAlienDrew/Unofficial-Sticky-Notes">Unofficial Sticky Notes GitHub</a> page.
         \n\n<b><u>News</u>:</b>
+        \n<li>An options menu is now available to change settings for the app such as the theme or tooltips.</li>
         \n<li>You can finally use predictive text, auto-correct, and Glide/Swipe/Loops on Gboard, SwiftKey Keyboard, and other keyboards!</li>
         \n\n<b><u>Features</u>:</b>
-        \n<li>Toggle between light, dark, and system themes via the volume keys.</li>
+        \n<li>Toggle between light, dark, and system themes via the options menu.</li>
         \n<li>You can upload/download images to/from your device.</li>
         \n<li>Works offline, but you must sign into it at least once, for the notes to show up on your device.</li>
         \n<li>Pull-to-refresh is enabled within the notes list.</li>
         \n<li>Obviously, no ads whatsoever.</li>
         \n\n<b><u>Planned Features</u>:</b>
-        \n<li>An app menu to change settings (instead of using volume keys + other features I plan to make).</li>
-        \n<li>Undo/redo buttons when editing notes, only after enough request for the feature.</li>
         \n<li>Widgets for single notes (these won\'t be able to sync automatically).</li>
+        \n<li>Undo/redo buttons when editing notes, only after enough request for the feature.</li>
     </string>
     <string name="closeBtn">Close</string>
     <!-- TODO: old code for text bug prompt (string constants), might be useful to repurpose as a "rating me" popup -->

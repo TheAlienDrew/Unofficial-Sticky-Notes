@@ -174,6 +174,10 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     private boolean useSystemTheme = false;
     private boolean useDarkTheme = false;
 
+    // turn off tooltips
+    private static final String PREF_TOOLTIPS = "tooltips";
+    private boolean disableToolTips = false;
+
     // for first time use
     private Dialog popupDialog;
     private WindowManager.LayoutParams popupLayoutParams;
@@ -645,6 +649,9 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 // light theme is the Microsoft default
                 if (useDarkTheme) injectScriptFile(view, "js/dark_theme.js");
 
+                // disable tooltips if setting is active
+                if (disableToolTips) injectScriptFile(view, "js/disable_tooltips.js");
+
                 // make the website compatible with Android webView
                 injectScriptFile(view, "js/webView_convert.js");
 
@@ -742,6 +749,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         String prefVersionUse = preferences.getString(PREF_VERSION_USED, "0");
         String prefTheme = preferences.getString(PREF_THEME, "system");
+        boolean prefToolTips = preferences.getBoolean(PREF_TOOLTIPS, true);
         updatedToNewVersion = (!APP_VERSION.equals(prefVersionUse));
         switch (prefTheme) {
             case "dark":
@@ -752,6 +760,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 if (isSystemDark()) useDarkTheme = true;
                 break;
         }
+        disableToolTips = !prefToolTips;
 
         // need splash image to focus on it after webView reloads so keyboard doesn't auto popup
         splashImage = findViewById(R.id.splashImage);
@@ -1102,6 +1111,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         return true;
     }
     // shift through theme settings
+    /* No longer using this in favor for the options menu buttons
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         if (!disableReloading) {
@@ -1125,6 +1135,42 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         }
 
         return true;
+    } */
+    private void toggleThemePrompt() {
+        final AlertDialog toggleThemeDialog = createAlertDialog(MainActivity.this);
+        toggleThemeDialog.setTitle("Themes");
+        toggleThemeDialog.setMessage("Press a theme button below to change theme, or touch anywhere outside the prompt to cancel.");
+        if (!useSystemTheme) {
+            toggleThemeDialog.setButton(DialogInterface.BUTTON_NEUTRAL, "System", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    useSystemTheme = true;
+                    toggleTheme("system");
+                }
+            });
+        }
+        if (useDarkTheme) {
+            toggleThemeDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Light", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    useSystemTheme = false;
+                    toggleTheme("light");
+                }
+            });
+        } else {
+            toggleThemeDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Dark", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    useSystemTheme = false;
+                    toggleTheme("dark");
+                }
+            });
+        }
+        toggleThemeDialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface arg0) {
+                alertDialogThemeButtons(MainActivity.this, toggleThemeDialog);
+            }
+        });
+
+        toggleThemeDialog.show();
     }
 
     // toggles theme in shared preferences
@@ -1159,6 +1205,22 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         if (updatedToNewVersion) popupDialog.dismiss();
         useDarkTheme = darkTheme;
         // setTempTheme(); // TODO: old code for text bug prompt (sets theme), might be useful to repurpose as a "rating me" popup
+        internetCacheLoad(webStickies, null);
+    }
+
+    // toggles tooltips in shared preferences
+    private void toggleToolTips() {
+        disableReloading = true;
+
+        // show theme update info
+        String displayToast = "ToolTips " + (disableToolTips ? "enabled" : "disabled");
+        Toast.makeText(this, displayToast, Toast.LENGTH_SHORT).show();
+
+        SharedPreferences.Editor editor = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit();
+        editor.putBoolean(PREF_TOOLTIPS, disableToolTips);
+        editor.apply();
+
+        disableToolTips = !disableToolTips;
         internetCacheLoad(webStickies, null);
     }
 
@@ -1218,6 +1280,28 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                         swipeRefresher.setEnabled(false);
                         swipeRefresher.setRefreshing(false);
                     }
+                }
+            });
+        }
+
+        // switch theme prompt when clicking on the button from the menu
+        @JavascriptInterface
+        public void promptSwitchTheme() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    toggleThemePrompt();
+                }
+            });
+        }
+
+        // toggle tooltips on or off when clicking on the button from the menu
+        @JavascriptInterface
+        public void promptToggleToolTips() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    toggleToolTips();
                 }
             });
         }
