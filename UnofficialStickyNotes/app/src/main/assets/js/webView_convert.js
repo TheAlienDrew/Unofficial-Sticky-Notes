@@ -16,8 +16,6 @@ javascript:(function() {
         const officeLinkSelector = appLauncherMainViewSelector + ' > a';
         const allAppsLinkSpacerSelector = appsModuleSelector + ' > div:nth-child(3)';
         const allAppsLinkSelector = '#allAppsLink';
-
-
         const sidePaneSelector = '.n-side-pane-content';
         const flexPaneCloseButtonSelector = '#flexPaneCloseButton';
         const lightBoxCloseSelector = '.n-lightbox-close';
@@ -32,7 +30,6 @@ javascript:(function() {
         const noteEditContainerSelector = '.n-detailViewContainer';
         const noteSelector = '.n-note';
         const noteListContainerSelector = '.n-noteListContainer';
-        const noteListSelector = '.n-noteList';
         const noteListCellClassName = 'ms-List-cell';
         const helpPaneSelector = '#helpPaneFull'; // TODO: Required for fall back of help page
         const editableTextSelector = 'div[contenteditable="true"].n-slateEditorRoot';
@@ -51,26 +48,31 @@ javascript:(function() {
             if (elementExists(noteEditContainer) && !noteEditContainer.classList.contains('inactive') && !noteEditContainer.classList.contains('n-noteSelected')) return true;
             else return false;
         };
+        // function for getting scrollTop to enable swipe
+        var getScrollTop = function() {
+            // when someone has no notes, the noteListContainer and noteList don't load in, so it has to be accounted for
+            if (elementExists(noteListContainer)) return noteListContainer.scrollTop;
+            else return 0;
+        };
 
         // wait for loading animation to appear then disappear before making webView visible (if on sticky notes page)
         var editingActive = 0;
+        var theScrollTop = 0;
+        var noteListContainer = null;
+        var noteListCell = null;
         if (currentURL == stickyNotesURL) {
-            //themeCss += '#O365_HeaderLeftRegion{display:none}';
             // include modified menu icons
             themeCss += '.o365cs-base .ms-Icon--MoonBlackLogo:before{content:""}.ms-svg-Icon.ms-Icon--MoonBlackLogo:before{background:url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBpZD0ic3ZnNiIgcHJlc2VydmVBc3BlY3RSYXRpbz0ieE1pZFlNaWQgbWVldCIgdmlld0JveD0iMCAwIDQ4IDQ4IiBoZWlnaHQ9IjQ4IiB3aWR0aD0iNDgiPgogIDxnCiAgICAgaWQ9Imc0IgogICAgIHN0cm9rZT0ibm9uZSIKICAgICBmaWxsPSIjMDAwMDAwIgogICAgIHRyYW5zZm9ybT0ibWF0cml4KDAuMDA0OTAxMTYsMCwwLC0wLjAwNDkwMzM2LC0wLjAwNTIwMTIsNDguMDI5MDE4KSI+CiAgICA8cGF0aAogICAgICAgaWQ9InBhdGgyIgogICAgICAgZD0iTSAzNDU1LDk3NDUgQyAyMzUwLDkzNzggMTQzNSw4Njc3IDgwNyw3NzE5IC03MSw2Mzc4IC0yNDMsNDY4MyAzNDcsMzE3NSA0MTUsMzAwMiA2MDQsMjYxNCA2OTcsMjQ2MCAxMDQwLDE4ODggMTQ5NiwxMzgwIDIwMTUsOTk1IDI1MzcsNjA3IDMxMzAsMzIyIDM3NTAsMTYxIDQxODIsNTAgNDUzNSw2IDUwMDUsNiBjIDMxNCwtMSA0MzUsNyA3MDQsNDUgMTI5NywxODEgMjQ3OCw4ODIgMzI3NSwxOTQzIDMwMSw0MDEgNTQzLDg0OSA3MTQsMTMyMSA1NCwxNTEgMTAzLDMwNSA5NiwzMDUgLTIsMCAtNjEsLTMxIC0xMzEsLTY4IC01NzUsLTMwNyAtMTE1NSwtNDgwIC0xNzkwLC01MzMgLTE4NSwtMTUgLTY2MSwtNyAtODQzLDE1IC05MTcsMTExIC0xNzM5LDQ2OSAtMjQzNSwxMDYxIC0xMzAsMTEwIC0zODEsMzYxIC00OTgsNDk5IC01MDQsNTg4IC04NDMsMTI4MCAtMTAwMSwyMDQxIC05Myw0NDkgLTExNCwxMDAxIC01NSwxNDYwIDY4LDUzMiAyNTEsMTA5MyA1MTUsMTU3OCAzNiw2NSA2NCwxMjAgNjIsMTIyIC0yLDIgLTc1LC0yMCAtMTYzLC01MCB6IiAvPgogIDwvZz4KPC9zdmc+Cg==) 50% no-repeat;color:transparent}.o365cs-base .ms-Icon--MoonWhiteLogo:before{content:""}.ms-svg-Icon.ms-Icon--MoonWhiteLogo:before{background:url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBpZD0ic3ZnNiIgcHJlc2VydmVBc3BlY3RSYXRpbz0ieE1pZFlNaWQgbWVldCIgdmlld0JveD0iMCAwIDQ4IDQ4IiBoZWlnaHQ9IjQ4IiB3aWR0aD0iNDgiPgogIDxnCiAgICAgaWQ9Imc0IgogICAgIHN0cm9rZT0ibm9uZSIKICAgICBmaWxsPSIjRkZGRkZGIgogICAgIHRyYW5zZm9ybT0ibWF0cml4KDAuMDA0OTAxMTYsMCwwLC0wLjAwNDkwMzM2LC0wLjAwNTIwMTIsNDguMDI5MDE4KSI+CiAgICA8cGF0aAogICAgICAgaWQ9InBhdGgyIgogICAgICAgZD0iTSAzNDU1LDk3NDUgQyAyMzUwLDkzNzggMTQzNSw4Njc3IDgwNyw3NzE5IC03MSw2Mzc4IC0yNDMsNDY4MyAzNDcsMzE3NSA0MTUsMzAwMiA2MDQsMjYxNCA2OTcsMjQ2MCAxMDQwLDE4ODggMTQ5NiwxMzgwIDIwMTUsOTk1IDI1MzcsNjA3IDMxMzAsMzIyIDM3NTAsMTYxIDQxODIsNTAgNDUzNSw2IDUwMDUsNiBjIDMxNCwtMSA0MzUsNyA3MDQsNDUgMTI5NywxODEgMjQ3OCw4ODIgMzI3NSwxOTQzIDMwMSw0MDEgNTQzLDg0OSA3MTQsMTMyMSA1NCwxNTEgMTAzLDMwNSA5NiwzMDUgLTIsMCAtNjEsLTMxIC0xMzEsLTY4IC01NzUsLTMwNyAtMTE1NSwtNDgwIC0xNzkwLC01MzMgLTE4NSwtMTUgLTY2MSwtNyAtODQzLDE1IC05MTcsMTExIC0xNzM5LDQ2OSAtMjQzNSwxMDYxIC0xMzAsMTEwIC0zODEsMzYxIC00OTgsNDk5IC01MDQsNTg4IC04NDMsMTI4MCAtMTAwMSwyMDQxIC05Myw0NDkgLTExNCwxMDAxIC01NSwxNDYwIDY4LDUzMiAyNTEsMTA5MyA1MTUsMTU3OCAzNiw2NSA2NCwxMjAgNjIsMTIyIC0yLDIgLTc1LC0yMCAtMTYzLC01MCB6IiAvPgogIDwvZz4KPC9zdmc+Cg==) 50% no-repeat;color:transparent}.o365cs-base .ms-Icon--ToolTipBlackLogo:before{content:""}.ms-svg-Icon.ms-Icon--ToolTipBlackLogo:before{background:url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczpzb2RpcG9kaT0iaHR0cDovL3NvZGlwb2RpLnNvdXJjZWZvcmdlLm5ldC9EVEQvc29kaXBvZGktMC5kdGQiIGhlaWdodD0iNDgiIHdpZHRoPSI0OCIgdmlld0JveD0iMCAwIDQ4IDQ4Ij4KICA8ZwogICAgIGlkPSJnOCIKICAgICBmaWxsLXJ1bGU9ImV2ZW5vZGQiCiAgICAgZmlsbD0ibm9uZSIKICAgICBzdHJva2Utd2lkdGg9IjEiCiAgICAgc3Ryb2tlPSJub25lIgogICAgIHRyYW5zZm9ybT0ic2NhbGUoMC4zMikiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJzdHJva2Utd2lkdGg6MS41IgogICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3NzY2Njc3Nzc3Nzc3Nzc3NzY2Njc3NzcyIKICAgICAgIGlkPSJwYXRoNiIKICAgICAgIGZpbGw9IiMwMDAwMDAiCiAgICAgICBkPSJtIDQyLjEzMzUsNzkuMTE2IGggNjUuNzMzIGMgMi41NTksMCA0LjYzMzUsMi4wNzQ1IDQuNjMzNSw0LjYzMzUgMCwyLjU1OSAtMi4wNzQ1LDQuNjMzNSAtNC42MzM1LDQuNjMzNSBoIC02NS43MzMgYyAtMi41NTksMCAtNC42MzM1LC0yLjA3NDUgLTQuNjMzNSwtNC42MzM1IDAsLTIuNTU5IDIuMDc0NSwtNC42MzM1IDQuNjMzNSwtNC42MzM1IHogTSAzNy41LDYyLjI1MyB2IDAgYyAwLC0yLjU1OSAyLjA3NDUsLTQuNjMzNSA0LjYzMzUsLTQuNjMzNSBoIDY1LjczMyBjIDIuNTU5LDAgNC42MzM1LDIuMDc0NSA0LjYzMzUsNC42MzM1IDAsMi41NTkgLTIuMDc0NSw0LjYzMzUgLTQuNjMzNSw0LjYzMzUgSCA0Mi4xMzM1IEMgMzkuNTc0NSw2Ni44ODY1IDM3LjUsNjQuODEyIDM3LjUsNjIuMjUzIFogbSAwLC0yMS40OTY1IHYgMCBjIDAsLTIuNTU5IDIuMDc0NSwtNC42MzM1IDQuNjMzNSwtNC42MzM1IGggNjUuNzMzIGMgMi41NTksMCA0LjYzMzUsMi4wNzQ1IDQuNjMzNSw0LjYzMzUgMCwyLjU1OSAtMi4wNzQ1LDQuNjMzNSAtNC42MzM1LDQuNjMzNSBIIDQyLjEzMzUgQyAzOS41NzQ1LDQ1LjM5IDM3LjUsNDMuMzE1NSAzNy41LDQwLjc1NjUgWiBNIDEzMy4yMzMsOTYgYyAwLDMuMTYwNSAtMi41NzI1LDUuNzMzIC01LjczMyw1LjczMyBIIDEwMS41OTM1IEwgNzUsMTI0LjMzNjUgNDguNDA2NSwxMDEuNzMzIEggMjIuNSBjIC0zLjE2MDUsMCAtNS43MzMsLTIuNTcyNSAtNS43MzMsLTUuNzMzIFYgMjguNSBjIDAsLTMuMTYyIDIuNTcyNSwtNS43MzMgNS43MzMsLTUuNzMzIGggMTA1IGMgMy4xNjA1LDAgNS43MzMsMi41NzEgNS43MzMsNS43MzMgeiBNIDEyNy41LDEzLjUgaCAtMTA1IGMgLTguMjg0NSwwIC0xNSw2LjcxNTUgLTE1LDE1IFYgOTYgYyAwLDguMjg0NSA2LjcxNTUsMTUgMTUsMTUgSCA0NSBsIDMwLDI1LjUgMzAsLTI1LjUgaCAyMi41IGMgOC4yODQ1LDAgMTUsLTYuNzE1NSAxNSwtMTUgViAyOC41IGMgMCwtOC4yODQ1IC02LjcxNTUsLTE1IC0xNSwtMTUgeiIgLz4KICA8L2c+Cjwvc3ZnPgo=) 50% no-repeat;color:transparent}.o365cs-base .ms-Icon--ToolTipWhiteLogo:before{content:""}.ms-svg-Icon.ms-Icon--ToolTipWhiteLogo:before{background:url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczpzb2RpcG9kaT0iaHR0cDovL3NvZGlwb2RpLnNvdXJjZWZvcmdlLm5ldC9EVEQvc29kaXBvZGktMC5kdGQiIGhlaWdodD0iNDgiIHdpZHRoPSI0OCIgdmlld0JveD0iMCAwIDQ4IDQ4Ij4KICA8ZwogICAgIGlkPSJnOCIKICAgICBmaWxsLXJ1bGU9ImV2ZW5vZGQiCiAgICAgZmlsbD0ibm9uZSIKICAgICBzdHJva2Utd2lkdGg9IjEiCiAgICAgc3Ryb2tlPSJub25lIgogICAgIHRyYW5zZm9ybT0ic2NhbGUoMC4zMikiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJzdHJva2Utd2lkdGg6MS41IgogICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3NzY2Njc3Nzc3Nzc3Nzc3NzY2Njc3NzcyIKICAgICAgIGlkPSJwYXRoNiIKICAgICAgIGZpbGw9IiNGRkZGRkYiCiAgICAgICBkPSJtIDQyLjEzMzUsNzkuMTE2IGggNjUuNzMzIGMgMi41NTksMCA0LjYzMzUsMi4wNzQ1IDQuNjMzNSw0LjYzMzUgMCwyLjU1OSAtMi4wNzQ1LDQuNjMzNSAtNC42MzM1LDQuNjMzNSBoIC02NS43MzMgYyAtMi41NTksMCAtNC42MzM1LC0yLjA3NDUgLTQuNjMzNSwtNC42MzM1IDAsLTIuNTU5IDIuMDc0NSwtNC42MzM1IDQuNjMzNSwtNC42MzM1IHogTSAzNy41LDYyLjI1MyB2IDAgYyAwLC0yLjU1OSAyLjA3NDUsLTQuNjMzNSA0LjYzMzUsLTQuNjMzNSBoIDY1LjczMyBjIDIuNTU5LDAgNC42MzM1LDIuMDc0NSA0LjYzMzUsNC42MzM1IDAsMi41NTkgLTIuMDc0NSw0LjYzMzUgLTQuNjMzNSw0LjYzMzUgSCA0Mi4xMzM1IEMgMzkuNTc0NSw2Ni44ODY1IDM3LjUsNjQuODEyIDM3LjUsNjIuMjUzIFogbSAwLC0yMS40OTY1IHYgMCBjIDAsLTIuNTU5IDIuMDc0NSwtNC42MzM1IDQuNjMzNSwtNC42MzM1IGggNjUuNzMzIGMgMi41NTksMCA0LjYzMzUsMi4wNzQ1IDQuNjMzNSw0LjYzMzUgMCwyLjU1OSAtMi4wNzQ1LDQuNjMzNSAtNC42MzM1LDQuNjMzNSBIIDQyLjEzMzUgQyAzOS41NzQ1LDQ1LjM5IDM3LjUsNDMuMzE1NSAzNy41LDQwLjc1NjUgWiBNIDEzMy4yMzMsOTYgYyAwLDMuMTYwNSAtMi41NzI1LDUuNzMzIC01LjczMyw1LjczMyBIIDEwMS41OTM1IEwgNzUsMTI0LjMzNjUgNDguNDA2NSwxMDEuNzMzIEggMjIuNSBjIC0zLjE2MDUsMCAtNS43MzMsLTIuNTcyNSAtNS43MzMsLTUuNzMzIFYgMjguNSBjIDAsLTMuMTYyIDIuNTcyNSwtNS43MzMgNS43MzMsLTUuNzMzIGggMTA1IGMgMy4xNjA1LDAgNS43MzMsMi41NzEgNS43MzMsNS43MzMgeiBNIDEyNy41LDEzLjUgaCAtMTA1IGMgLTguMjg0NSwwIC0xNSw2LjcxNTUgLTE1LDE1IFYgOTYgYyAwLDguMjg0NSA2LjcxNTUsMTUgMTUsMTUgSCA0NSBsIDMwLDI1LjUgMzAsLTI1LjUgaCAyMi41IGMgOC4yODQ1LDAgMTUsLTYuNzE1NSAxNSwtMTUgViAyOC41IGMgMCwtOC4yODQ1IC02LjcxNTUsLTE1IC0xNSwtMTUgeiIgLz4KICA8L2c+Cjwvc3ZnPgo=) 50% no-repeat;color:transparent}.o365cs-base .XosamnChUoOcR_dGIrHqq{height:76px!important}.o365cs-base ._1NTwdglUKLpHkf8sgkCoVl{font-size:52px!important}.o365cs-base ._1HJV45WSd5AgKYxKiK4-Fc{font:20px SegoeUI-Regular-final,Segoe UI,"Segoe UI Web (West European)",Segoe,-apple-system,BlinkMacSystemFont,Roboto,Helvetica Neue,Tahoma,Helvetica,Arial,sans-serif!important;margin-top:20px!important}';
 
             var checkLoading = setInterval(function() {
-                var noteList = noteList = document.querySelector(noteListSelector);
+                var mainLinkNavMenu = document.querySelector(mainLinkNavMenuSelector);
                 var sidePane = document.querySelector(sidePaneSelector);
 
                 // sidePane.lastElementChild.innerText is the best way to determine that notes are loaded
                 // trying to see if the loading animation appeared and disappeared won't always work (can be too fast)
-                if(elementExists(noteList) && (sidePane.lastElementChild.innerText != "Loading your notes...")) {
+                if(elementExists(mainLinkNavMenu) && elementExists(sidePane) && sidePane.lastElementChild.innerText != "Loading your notes...") {
                     clearInterval(checkLoading);
 
-                    var mainLinkNavMenu = document.querySelector(mainLinkNavMenuSelector);
-                    var noteListContainer = document.querySelector(noteListContainerSelector);
-                    var noteListCell = document.getElementsByClassName(noteListCellClassName);
                     var helpPaneExists = false;
                     var closeButtonActive = false;
                     var editingNote = false;
@@ -157,25 +159,40 @@ javascript:(function() {
                         }, fastDelay);
                     };
                     // scrolling note list checks swipe
-                    noteListContainer.addEventListener('touchmove', function(e) {
-                        editingActive = isEditing();
-                        window.Android.setSwipeRefresher(noteListContainer.scrollTop, editingActive);
-                    }, false);
-                    // pressing in note list checks swipe
-                    noteListContainer.addEventListener('touchstart', function(e) {
-                        editingActive = isEditing();
-                        window.Android.setSwipeRefresher(noteListContainer.scrollTop, editingActive);
-                    }, false);
-                    // after clicking a note in list, disable swipe
-                    setInterval(function() {
-                        var i;
-                        for (i = 0; i < noteListCell.length; ++i) {
-                            // needs to always check
+                    var waitForNoteListContainer = setInterval(function() {
+                        noteListContainer = document.querySelector(noteListContainerSelector);
+                        if (elementExists(noteListContainer)) {
+                            clearInterval(waitForNoteListContainer);
 
-                            noteListCell[i].onclick = function () {
-                                window.Android.setSwipeRefresher(disableSwipe, disableSwipe);
-                                editingNote = false; // needed to copy note data from another note when in tablet mode
-                            };
+                            noteListContainer.addEventListener('touchmove', function(e) {
+                                editingActive = isEditing();
+                                theScrollTop = getScrollTop();
+                                window.Android.setSwipeRefresher(theScrollTop, editingActive);
+                            }, false);
+                            // pressing in note list checks swipe
+                            noteListContainer.addEventListener('touchstart', function(e) {
+                                editingActive = isEditing();
+                                theScrollTop = getScrollTop();
+                                window.Android.setSwipeRefresher(theScrollTop, editingActive);
+                            }, false);
+                        }
+                    }, fastDelay);
+                    // after clicking a note in list, disable swipe
+                    var waitForNoteListCell = setInterval(function() {
+                        noteListCell = document.getElementsByClassName(noteListCellClassName);
+                        if (elementExists(noteListCell)) clearInterval(waitForNoteListCell);
+                    }, fastDelay);
+                    setInterval(function() {
+                        if (elementExists(noteListCell)) {
+                            var i;
+                            for (i = 0; i < noteListCell.length; ++i) {
+                                // needs to always check
+
+                                noteListCell[i].onclick = function () {
+                                    window.Android.setSwipeRefresher(disableSwipe, disableSwipe);
+                                    editingNote = false; // needed to copy note data from another note when in tablet mode
+                                };
+                            }
                         }
                     }, slowDelay);
                     // change help to open in the webView
@@ -222,7 +239,8 @@ javascript:(function() {
 
                             noteEditCloseButton.onclick = function () {
                                 editingActive = isEditing();
-                                window.Android.setSwipeRefresher(noteListContainer.scrollTop, editingActive);
+                                theScrollTop = getScrollTop();
+                                window.Android.setSwipeRefresher(theScrollTop, editingActive);
                             };
                         }
                     }, slowDelay);
@@ -294,7 +312,8 @@ javascript:(function() {
 
                     // execute once to determine swipe at page load
                     editingActive = isEditing();
-                    window.Android.setSwipeRefresher(noteListContainer.scrollTop, editingActive);
+                    theScrollTop = getScrollTop();
+                    window.Android.setSwipeRefresher(theScrollTop, editingActive);
                     // set webView to visible
                     window.Android.webViewSetVisible();
                 }
