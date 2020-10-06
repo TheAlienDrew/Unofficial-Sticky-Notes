@@ -3,12 +3,14 @@ javascript:(function() {
         // constants
         const stickyNotesURL = 'www.onenote.com/stickynotes'
         const signUpURL = 'https://signup.live.com/';
-        const loginURL = 'login.microsoftonline.com/common/oauth2/authorize';
+        const loginAuthURL = 'login.microsoftonline.com/common/oauth2/authorize';
+        const neverCached = 'chromewebdata'
         const disableSwipe = 1;
         const slowDelay = 1000;
         const fastDelay = 100;
         // constant selectors
         const mainLinkNavMenuSelector = '#O365_MainLink_NavMenu';
+        const mainLinkNavMenuCloseButtonSelector = '#appLauncherTop > button';
         const appLauncherMainViewSelector = '#appLauncherMainView';
         const appsModuleSelector = '#appsModule';
         const headerLeftTitleSelector = appsModuleSelector + ' > h2';
@@ -31,9 +33,8 @@ javascript:(function() {
         const noteSelector = '.n-note';
         const noteListContainerSelector = '.n-noteListContainer';
         const noteListCellClassName = 'ms-List-cell';
+        const helpButtonSelector = '#O365_MainLink_Help';
         const helpPaneSelector = '#helpPaneFull'; // TODO: Required for fall back of help page
-        const editableTextSelector = 'div[contenteditable="true"].n-slateEditorRoot';
-        const helpButtonSelector = '#O365_MainLink_Help_container';
         // theme changes based on url
         var currentURL = document.location.host + document.location.pathname;
         var tempBulletFix = '.n-notePreviewContainer li{margin:0 0 0 -25px;list-style-type:initial}.public-DraftStyleDefault-ul li{margin:0 0 0 -25px}';
@@ -70,7 +71,7 @@ javascript:(function() {
 
                 // sidePane.lastElementChild.innerText is the best way to determine that notes are loaded
                 // trying to see if the loading animation appeared and disappeared won't always work (can be too fast)
-                if(elementExists(mainLinkNavMenu) && elementExists(sidePane) && sidePane.lastElementChild.innerText != "Loading your notes...") {
+                if(elementExists(mainLinkNavMenu) && elementExists(sidePane) && sidePane.lastElementChild.innerText != 'Loading your notes...') {
                     clearInterval(checkLoading);
 
                     var helpPaneExists = false;
@@ -202,7 +203,24 @@ javascript:(function() {
                             clearInterval(waitForHelp);
 
                             helpButton.onclick = function () {
-                                window.Android.loadStickiesHelp();
+                                window.Android.webViewSetVisible(false);
+
+                                var helpIFrameSelector = helpPaneSelector + ' iframe'; // TODO: DISABLED BECAUSE WEBVIEW DOESN'T ACTIVATE DYNAMIC JAVASCRIPT/CSS BEYOND THE FIRST IFRAME
+                                var helpIFrameLoaded = false;
+                                var checkForHelp = setInterval(function () {
+                                    var helpIFrame = document.querySelector(helpIFrameSelector);
+
+                                    if (elementExists(helpIFrame)) { // TODO: FIX ME WHEN NO INTERNET AND NOT CACHED!!!
+                                        clearInterval(checkForHelp);
+
+                                        helpIFrame.onload = function() {
+                                            window.Android.loadStickiesHelp();
+                                        };
+
+                                        // change to the new URL
+                                        helpIFrame.src = window.Android.getHelpUrl();
+                                    }
+                                }, slowDelay);
                             };
                         }
                     }, fastDelay);
@@ -213,11 +231,11 @@ javascript:(function() {
                             // needs to always check
 
                             window.Android.setSwipeRefresher(disableSwipe, disableSwipe);
-                            if (window.Android.isDarkMode()) helpPane.style = "filter:invert(100%)hue-rotate(180deg)";
+                            if (window.Android.isDarkMode()) helpPane.style = 'filter:invert(100%)hue-rotate(180deg)';
                             helpPaneExists = true;
                         } else helpPaneExists = false;
                     }, slowDelay);
-                    // disable swipe while editing a note (needed for tablet users)
+                    // disable swipe while editing a note
                     var waitForEditNote = setInterval(function() {
                         var note = document.querySelector(noteSelector);
                         if (elementExists(note)) {
@@ -247,7 +265,7 @@ javascript:(function() {
 
                     // allow back button to close any current element that can be closed out
                     setInterval(function() {
-                        var currentCloseElement = "";
+                        var currentCloseElement = '';
                         // first, see if description cancel button exists
                         var tempCloseButton = document.querySelector(imageAltTextCancelSelector);
                         if (elementExists(tempCloseButton)) currentCloseElement = imageAltTextCancelSelector;
@@ -264,23 +282,28 @@ javascript:(function() {
                                     tempCloseButton = document.querySelector(noteEditCloseButtonSelector);
                                     if (elementExists(tempCloseButton) && window.getComputedStyle(document.querySelector(noteEditCloseButtonSelector)).visibility == 'visible') currentCloseElement = noteEditCloseButtonSelector;
                                     else {
-                                        // fifth, see if any flex pane close button exists (settings/help/account)
-                                        tempCloseButton = document.querySelector(flexPaneCloseButtonSelector);
-                                        if (elementExists(tempCloseButton)) {
-                                            // fifth and a half, check if export notes dialog is open
-                                            var dialogTitleExport = document.querySelector(dialogTitleSelector);
-                                            var dialogOverlay = document.querySelector(dialogOverlaySelector);
-                                            if (elementExists(dialogTitleExport) && (dialogTitleExport.innerText.match(/export/i) != "") && elementExists(dialogOverlay)) currentCloseElement = dialogOverlaySelector;
-                                            else currentCloseElement = flexPaneCloseButtonSelector;
-                                        } else {
-                                            // sixth, see if the offline ok button exists
-                                            var dialogTitleOffline = document.querySelector(dialogTitleSelector);
-                                            tempCloseButton = document.querySelector(dialogConfirmButtonSelector);
-                                            if (elementExists(dialogTitleOffline) && (dialogTitleOffline.innerText.match(/offline/i) != "") && elementExists(dialogConfirmButtonSelector)) currentCloseElement = dialogConfirmButtonSelector;
-                                            else {
-                                                // lastly, see if the search close button exists and is visible
-                                                tempCloseButton = document.querySelector(searchCloseButtonSelector);
-                                                if (elementExists(tempCloseButton) && window.getComputedStyle(document.querySelector(searchCloseButtonSelector)).visibility == 'visible') currentCloseElement = searchCloseButtonSelector;
+                                        // fifth, see if the menu pane close action is available
+                                        tempCloseButton = document.querySelector(mainLinkNavMenuCloseButtonSelector);
+                                        if (elementExists(tempCloseButton)) currentCloseElement = mainLinkNavMenuCloseButtonSelector;
+                                        else {
+                                            // sixth, see if any flex pane close button exists (settings/help/account)
+                                            tempCloseButton = document.querySelector(flexPaneCloseButtonSelector);
+                                            if (elementExists(tempCloseButton)) {
+                                                // sixth and a half, check if export notes dialog is open
+                                                var dialogTitleExport = document.querySelector(dialogTitleSelector);
+                                                var dialogOverlay = document.querySelector(dialogOverlaySelector);
+                                                if (elementExists(dialogTitleExport) && (dialogTitleExport.innerText.match(/export/i) != '') && elementExists(dialogOverlay)) currentCloseElement = dialogOverlaySelector;
+                                                else currentCloseElement = flexPaneCloseButtonSelector;
+                                            } else {
+                                                // seventh, see if the offline ok button exists
+                                                var dialogTitleOffline = document.querySelector(dialogTitleSelector);
+                                                tempCloseButton = document.querySelector(dialogConfirmButtonSelector);
+                                                if (elementExists(dialogTitleOffline) && (dialogTitleOffline.innerText.match(/offline/i) != '') && elementExists(dialogConfirmButtonSelector)) currentCloseElement = dialogConfirmButtonSelector;
+                                                else {
+                                                    // lastly, see if the search close button exists and is visible
+                                                    tempCloseButton = document.querySelector(searchCloseButtonSelector);
+                                                    if (elementExists(tempCloseButton) && window.getComputedStyle(document.querySelector(searchCloseButtonSelector)).visibility == 'visible') currentCloseElement = searchCloseButtonSelector;
+                                                }
                                             }
                                         }
                                     }
@@ -292,30 +315,69 @@ javascript:(function() {
                         window.Android.setCloseAvailable(elementExists(tempCloseButton), currentCloseElement);
                     }, slowDelay);
 
-                    /*var helpIFrameSelector = helpPaneSelector + ' iframe'; // TODO: DISABLED BECAUSE WEBVIEW DOESN'T ACTIVATE DYNAMIC JAVASCRIPT/CSS BEYOND THE FIRST IFRAME
+                    /* var helpIFrameSelector = helpPaneSelector + ' iframe'; // TODO: DISABLED BECAUSE WEBVIEW DOESN'T ACTIVATE DYNAMIC JAVASCRIPT/CSS BEYOND THE FIRST IFRAME
                     var helpIFrameLoaded = false;
                     function checkForHelp() {
                         setTimeout(function() {
                             var helpIFrame = document.querySelector(helpIFrameSelector);
                             var helpIFrameExists = elementExists(helpIFrame);
                             if (helpIFrameExists && !helpIFrameLoaded) {
-                                var newURL = window.Android.getHelpUrl();
+                                helpIFrameLoaded = true;
 
                                 // change to the new URL
+                                var newURL = window.Android.getHelpUrl();
+
+                                // what to execute when the iFrame loads
+                                helpIFrame.onload = function () {
+                                    var checkForHelpIFrame = setInterval(function() {
+                                        var helpIFrameDoc = helpIFrame.contentDocument;
+
+                                        if (helpIFrameDoc != null) {
+                                            clearInterval(checkForHelpIFrame);
+
+                                            var iframeID = 'ocSearchIFrame'; // TODO: const
+
+                                            // set the style fixes
+                                            var checkForIFrame = setInterval(function() {
+                                                var iframe = helpIFrameDoc.getElementById(iframeID);
+                                                var iframeDoc = iframe.contentDocument;
+
+                                                if (elementExists(iframe) && iframeDoc != null) {
+                                                    clearInterval(checkForIFrame);
+
+                                                    // must listen for page load to change style
+                                                    iframe.onload = function () {
+                                                        var iDocument = frames[0].document;
+
+                                                        // activate the MS Support Modern CSS (improves light theme, and fixes dark theme)
+                                                        var msSupportModernStyle = document.createElement('link');
+                                                        msSupportModernStyle.type = 'text/css';
+                                                        msSupportModernStyle.rel = 'stylesheet';
+                                                        msSupportModernStyle.href = cssSupportModernMS;
+                                                        iDocument.head.appendChild(msSupportModernStyle);
+                                                    }
+                                                }
+                                            }, fastDelay);
+                                        }
+                                    }, fastDelay);
+                                }
+
                                 helpIFrame.src = newURL;
-                                helpIFrameLoaded = true;
                             } else if (!helpIFrameExists) helpIFrameLoaded = false;
                             checkForHelp();
                         }, fastDelay);
                     }
-                    checkForHelp();*/
+                    checkForHelp(); */
 
                     // execute once to determine swipe at page load
                     editingActive = isEditing();
                     theScrollTop = getScrollTop();
                     window.Android.setSwipeRefresher(theScrollTop, editingActive);
-                    // set webView to visible
-                    window.Android.webViewSetVisible();
+                    // set webView to visible after a small delay (so the loading gif on page disappears a bit more)
+                    document.body.style.opacity = 0;
+                    setTimeout(function() {
+                        window.Android.webViewSetVisible(true);
+                    }, slowDelay);
                 }
             }, fastDelay);
         } else {
@@ -324,7 +386,7 @@ javascript:(function() {
                     clearInterval(checkLoading);
 
                     // the create account link is broken, and needs to be changed
-                    if (currentURL == loginURL) {
+                    if (currentURL == loginAuthURL) {
                         var signUpSelector = 'signup';
                         var signUp = document.getElementById(signUpSelector);
 
@@ -336,7 +398,14 @@ javascript:(function() {
                     }
 
                     window.Android.setSwipeRefresher(disableSwipe, disableSwipe);
-                    window.Android.webViewSetVisible();
+
+                    // let login pages not fade in (just appear)
+                    var helpLink = window.Android.getHelpUrl();
+                    if (document.location.host != neverCached && currentURL != helpLink) {
+                        // opacity needs to be set to not look weird with the fadeIn effect
+                        document.body.style.opacity = 1;
+                        window.Android.webViewSetVisible(true);
+                    }
                 }
             }, fastDelay);
         }

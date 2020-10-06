@@ -1,0 +1,3 @@
+# This is where the modern CSS styles are located for Microsoft
+
+https://support.office.com/SocContent/topicCssWithNewLandingPage

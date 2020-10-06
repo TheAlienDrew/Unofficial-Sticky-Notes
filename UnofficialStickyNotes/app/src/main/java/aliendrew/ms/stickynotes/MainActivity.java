@@ -41,6 +41,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -140,7 +141,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     private static final String DARK_STICKY_HELP_THEME_ID = "4";
     private static final String LIGHT_STICKY_HELP_THEME_ID = "6";
     private static final String STICKY_HELP_URL_P2 = ",%22LinkColor%22:%22";
-    private static final String DARK_STICKY_HELP_LINK_COLOR = "B3D6FC";
+    private static final String DARK_STICKY_HELP_LINK_COLOR = "BCD6E6";
     private static final String LIGHT_STICKY_HELP_LINK_COLOR = "106EBE";
     private static final String STICKY_HELP_URL_P3 = "%22,%22IsWebShell%22:true,%22Domain%22:%22www.onenote.com%22%7D&Locale=";
     private static final String STICKY_HELP_URL_P4 = "&ShowNav=true&Version=16&omkt=";
@@ -425,7 +426,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         // The package name of the app that has installed your app
         final String installer = context.getPackageManager().getInstallerPackageName(context.getPackageName());
         // true if your app has been downloaded from Play Store
-        return installer != null && validInstallers.contains(installer);
+        return (installer != null && validInstallers.contains(installer));
     }
 
     // in-app update functions
@@ -538,20 +539,17 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             if (view == null || !view.getUrl().equals(failingUrl) || cacheErrorSent) return;
 
             // is page history back is possible, exit from here
-            if (view.canGoBack()) {
+            if (failingUrl.startsWith(STICKY_HELP_URL_START)) {
                 // if we are on the help page, send a toast that the user needs to view that page
                 //   online first for it to work offline
-                if (failingUrl.startsWith(STICKY_HELP_URL_START))
-                    Toast.makeText(MainActivity.this,
-                            "You must visit the Help website once online, before you can use it offline.",
-                            Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this,
+                        "You must visit the Help website once online, before you can use it offline.",
+                        Toast.LENGTH_LONG).show();
 
-                view.goBack();
+                if (view.canGoBack()) view.goBack();
+                else internetCacheLoad(view, STICKY_NOTES_URL);
                 return;
             }
-
-            // couldn't go back so, there is no page, must hide webView
-            view.setVisibility(View.INVISIBLE);
 
             final AlertDialog alertDialog = createAlertDialog(MainActivity.this);
             alertDialog.setCanceledOnTouchOutside(false);
@@ -576,6 +574,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 }
             });
 
+            // couldn't go back so, there is no page, must hide webView
             view.setVisibility(View.INVISIBLE);
             alertDialog.show();
             cacheErrorSent = true;
@@ -588,7 +587,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
 
         // LINKS OPEN AS EXTERNAL block
         private boolean checkLink(String url) {
-            return url.startsWith(STICKY_NOTES_URL)
+            return url.startsWith(STICKY_NOTES_URL) || url.startsWith(STICKY_HELP_URL_START)
                     || url.startsWith("https://www.onenote.com/common1pauth/signin?redirectUrl=https%3A%2F%2Fwww.onenote.com%2Fstickynotes")
                     || url.startsWith("https://login.windows.net/common/oauth2/authorize")
                     || url.startsWith("https://login.microsoftonline.com/common/oauth2/authorize")
@@ -632,6 +631,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             splashImage.requestFocus();
 
             view.setVisibility(View.INVISIBLE);
+            if (!keepNavBar) setToImmersiveMode(true);
         }
         @Override
         public void onPageFinished(WebView view, String url) {
@@ -639,12 +639,8 @@ public class MainActivity extends ImmersiveAppCompatActivity {
 
             // Don't load themes/don't allow swipe on the help page, as it's already themed/doesn't need reload
             if (url.startsWith(STICKY_HELP_URL_START)) {
-                // fix scaling/note boxes backgrounds (Microsoft theming errors)
+                // fix scaling and themes (Microsoft didn't prepare a dark mode)
                 injectScriptFile(view, "js/help_fixes.js");
-                // swipe to refresh is disabled so users can scroll the help page
-                swipeRefresher.setEnabled(false);
-                swipeRefresher.setRefreshing(false);
-                view.setVisibility(View.VISIBLE);
             } else {
                 // light theme is the Microsoft default
                 if (useDarkTheme) injectScriptFile(view, "js/dark_theme.js");
@@ -654,9 +650,8 @@ public class MainActivity extends ImmersiveAppCompatActivity {
 
                 // make the website compatible with Android webView
                 injectScriptFile(view, "js/webView_convert.js");
-
-                // visibility + swipe is handled in webView_convert.js for Sticky Notes and login
             }
+            // visibility + swipe is handled in webView_convert.js for Sticky Notes, help, and login
 
             disableReloading = false;
         }
@@ -698,9 +693,11 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         if (url != null) {
             keepNavBar = url.startsWith(STICKY_HELP_URL_START);
 
-            setToImmersiveMode(true);
+            // setToImmersive is now managed via mainly the web pages / webView's onPageStarted
 
-            if (url.length() > 0) view.loadUrl(url);
+            if (url.length() > 0) {
+                view.loadUrl(url);
+            }
         } else {
             if (view.getUrl().startsWith(STICKY_HELP_URL_START)) {
                 keepNavBar = true;
@@ -901,15 +898,15 @@ public class MainActivity extends ImmersiveAppCompatActivity {
 
         // add swipe to refresh listener
         swipeRefresher.setOnRefreshListener(
-                new SwipeRefreshLayout.OnRefreshListener() {
-                    @Override
-                    public void onRefresh() {
-                        disableReloading = true;
-                        swipeRefresher.setEnabled(false);
-                        swipeRefresher.setRefreshing(false);
-                        internetCacheLoad(webStickies, null);
-                    }
+            new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    disableReloading = true;
+                    swipeRefresher.setEnabled(false);
+                    swipeRefresher.setRefreshing(false);
+                    internetCacheLoad(webStickies, null);
                 }
+            }
         );
 
         // show popup if updated or first time install
@@ -997,12 +994,22 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                     }
                 } else {
                     // show a prompt for other app stores // TODO: Maybe use remnants of text bug prompt for this instead
-                    String otherInstaller = getPackageManager().getInstallerPackageName(getPackageName());
+                    final PackageManager pm = getApplicationContext().getPackageManager();
+                    final String installerPackageName = pm.getInstallerPackageName(getPackageName());
+                    ApplicationInfo ai;
+                    try {
+                        //noinspection ConstantConditions
+                        ai = pm.getApplicationInfo(installerPackageName, 0);
+                    } catch (final PackageManager.NameNotFoundException e) {
+                        ai = null;
+                    }
+                    final String otherInstaller = (String) (ai != null ? pm.getApplicationLabel(ai) : "your main Android app store");
+                    // TODO: NEED TO ENSURE THIS IS ACTUALLY WORKING (FIX ME???)
 
                     final AlertDialog otherInstallerDialog = createAlertDialog(MainActivity.this);
                     otherInstallerDialog.setTitle("New update available!");
-                    otherInstallerDialog.setMessage("Please visit \"" + otherInstaller
-                            + "\" in order to update to the newest version of Unofficial Sticky Notes. Or alternatively, go to the Google Play Store and install the update.");
+                    otherInstallerDialog.setMessage("Please open \"" + otherInstaller
+                            + "\" in order to update to the newest version of Unofficial Sticky Notes. I recommend going to the Google Play Store to download and install the update.");
                     otherInstallerDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Dismiss", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             otherInstallerDialog.dismiss();
@@ -1175,53 +1182,57 @@ public class MainActivity extends ImmersiveAppCompatActivity {
 
     // toggles theme in shared preferences
     private void toggleTheme(String theTheme) {
-        disableReloading = true;
+        if (!disableReloading) {
+            disableReloading = true;
 
-        // show theme update info
-        String displayToast = theTheme.substring(0, 1).toUpperCase() + theTheme.substring(1).toLowerCase() + " theme enabled";
-        Toast.makeText(this, displayToast, Toast.LENGTH_SHORT).show();
+            // show theme update info
+            String displayToast = theTheme.substring(0, 1).toUpperCase() + theTheme.substring(1).toLowerCase() + " theme enabled";
+            Toast.makeText(this, displayToast, Toast.LENGTH_SHORT).show();
 
-        // determine theme by user choice or by system settings
-        boolean darkTheme = false;
-        if (theTheme.equals("dark") || ((theTheme.equals("system") && isSystemDark()))) {
-            darkTheme = true;
-            swipeRefresher.setColorSchemeResources(R.color.colorAccent);
-            swipeRefresher.setProgressBackgroundColorSchemeColor(ContextCompat.getColor(this, R.color.colorDarkPrimaryLight));
-            webLoadingDark.setVisibility(View.VISIBLE);
-            webLoadingLight.setVisibility(View.INVISIBLE);
-            webStickies.setBackgroundColor(Color.BLACK);
-        } else {
-            swipeRefresher.setColorSchemeResources(R.color.colorAccentDark);
-            swipeRefresher.setProgressBackgroundColorSchemeColor(ContextCompat.getColor(this, R.color.colorLightPrimary));
-            webLoadingDark.setVisibility(View.INVISIBLE);
-            webLoadingLight.setVisibility(View.VISIBLE);
-            webStickies.setBackgroundColor(Color.WHITE);
+            // determine theme by user choice or by system settings
+            boolean darkTheme = false;
+            if (theTheme.equals("dark") || ((theTheme.equals("system") && isSystemDark()))) {
+                darkTheme = true;
+                swipeRefresher.setColorSchemeResources(R.color.colorAccent);
+                swipeRefresher.setProgressBackgroundColorSchemeColor(ContextCompat.getColor(this, R.color.colorDarkPrimaryLight));
+                webLoadingDark.setVisibility(View.VISIBLE);
+                webLoadingLight.setVisibility(View.INVISIBLE);
+                webStickies.setBackgroundColor(Color.BLACK);
+            } else {
+                swipeRefresher.setColorSchemeResources(R.color.colorAccentDark);
+                swipeRefresher.setProgressBackgroundColorSchemeColor(ContextCompat.getColor(this, R.color.colorLightPrimary));
+                webLoadingDark.setVisibility(View.INVISIBLE);
+                webLoadingLight.setVisibility(View.VISIBLE);
+                webStickies.setBackgroundColor(Color.WHITE);
+            }
+
+            SharedPreferences.Editor editor = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit();
+            editor.putString(PREF_THEME, theTheme);
+            editor.apply();
+
+            if (updatedToNewVersion) popupDialog.dismiss();
+            useDarkTheme = darkTheme;
+            // setTempTheme(); // TODO: old code for text bug prompt (sets theme), might be useful to repurpose as a "rating me" popup
+            internetCacheLoad(webStickies, null);
         }
-
-        SharedPreferences.Editor editor = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit();
-        editor.putString(PREF_THEME, theTheme);
-        editor.apply();
-
-        if (updatedToNewVersion) popupDialog.dismiss();
-        useDarkTheme = darkTheme;
-        // setTempTheme(); // TODO: old code for text bug prompt (sets theme), might be useful to repurpose as a "rating me" popup
-        internetCacheLoad(webStickies, null);
     }
 
     // toggles tooltips in shared preferences
     private void toggleToolTips() {
-        disableReloading = true;
+        if (!disableReloading) {
+            disableReloading = true;
 
-        // show theme update info
-        String displayToast = "ToolTips " + (disableToolTips ? "enabled" : "disabled");
-        Toast.makeText(this, displayToast, Toast.LENGTH_SHORT).show();
+            // show theme update info
+            String displayToast = "ToolTips " + (disableToolTips ? "enabled" : "disabled");
+            Toast.makeText(this, displayToast, Toast.LENGTH_SHORT).show();
 
-        SharedPreferences.Editor editor = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit();
-        editor.putBoolean(PREF_TOOLTIPS, disableToolTips);
-        editor.apply();
+            SharedPreferences.Editor editor = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit();
+            editor.putBoolean(PREF_TOOLTIPS, disableToolTips);
+            editor.apply();
 
-        disableToolTips = !disableToolTips;
-        internetCacheLoad(webStickies, null);
+            disableToolTips = !disableToolTips;
+            internetCacheLoad(webStickies, null);
+        }
     }
 
     // TODO: old code for text bug prompt (relates to background of prompt somehow), might be useful to repurpose as a "rating me" popup
@@ -1244,25 +1255,35 @@ public class MainActivity extends ImmersiveAppCompatActivity {
 
         // used to enable webView after fully loaded theme
         @JavascriptInterface
-        public void webViewSetVisible() {
+        public void webViewSetVisible(boolean choice) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    webStickies.setVisibility(View.VISIBLE);
-                    // make sure one loading screen is available after first launch
-                    if (appLaunched) {
-                        // TODO: old code for text bug prompt (sets visibility), might be useful to repurpose as a "rating me" popup
-                        // tempLinear.setVisibility(View.VISIBLE);
+                    if (choice) {
+                        // animate visibility as fade
+                        webStickies.evaluateJavascript("javascript:(function() {" +
+                                "var animationTime = 0;" +
+                                "var fadeIn = setInterval(frame, 10);" +
+                                "function frame() {" +
+                                  "if (document.body.style.opacity == 1) { clearInterval(fadeIn); document.body.style.opacity = ''; }" +
+                                  "else { animationTime += 0.05; document.body.style.opacity = animationTime; }" +
+                                "} })()", null);
+                        webStickies.setVisibility(View.VISIBLE);
+                        // make sure one loading screen is available after first launch
+                        if (appLaunched) {
+                            // TODO: old code for text bug prompt (sets visibility), might be useful to repurpose as a "rating me" popup
+                            // tempLinear.setVisibility(View.VISIBLE);
 
-                        if (useDarkTheme) webLoadingDark.setVisibility(View.VISIBLE);
-                        else webLoadingLight.setVisibility(View.VISIBLE);
-                        appLaunched = false;
-                    }
-                    if (updatedToNewVersion) {
-                        popupDialog.show();
-                        Window popupWindow = popupDialog.getWindow();
-                        if (popupWindow != null) popupWindow.setAttributes(popupLayoutParams);
-                    }
+                            if (useDarkTheme) webLoadingDark.setVisibility(View.VISIBLE);
+                            else webLoadingLight.setVisibility(View.VISIBLE);
+                            appLaunched = false;
+                        }
+                        if (updatedToNewVersion) {
+                            popupDialog.show();
+                            Window popupWindow = popupDialog.getWindow();
+                            if (popupWindow != null) popupWindow.setAttributes(popupLayoutParams);
+                        }
+                    } else webStickies.setVisibility(View.INVISIBLE);
                 }
             });
         }
@@ -1287,23 +1308,13 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         // switch theme prompt when clicking on the button from the menu
         @JavascriptInterface
         public void promptSwitchTheme() {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    toggleThemePrompt();
-                }
-            });
+            runOnUiThread(MainActivity.this::toggleThemePrompt);
         }
 
         // toggle tooltips on or off when clicking on the button from the menu
         @JavascriptInterface
         public void promptToggleToolTips() {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    toggleToolTips();
-                }
-            });
+            runOnUiThread(MainActivity.this::toggleToolTips);
         }
 
         // updates variable that knows if there is an available close button on screen
@@ -1329,9 +1340,24 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         // load help in fullscreen
         @JavascriptInterface
         public void loadStickiesHelp() {
-            runOnUiThread(() -> {
-                webStickies.setVisibility(View.INVISIBLE);
-                internetCacheLoad(webStickies, (useDarkTheme ? DARK_STICKY_HELP_URL : LIGHT_STICKY_HELP_URL));
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    webStickies.setVisibility(View.INVISIBLE);
+                    String helpURL = useDarkTheme ? DARK_STICKY_HELP_URL : LIGHT_STICKY_HELP_URL;
+                    internetCacheLoad(webStickies, helpURL);
+                }
+            });
+        }
+
+        // setToImmersive from the web
+        @JavascriptInterface
+        public void setToImmersive(boolean choice) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    setToImmersiveMode(choice);
+                }
             });
         }
     }
