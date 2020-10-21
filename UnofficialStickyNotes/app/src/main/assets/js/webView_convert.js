@@ -37,8 +37,7 @@ javascript:(function() {
         const helpPaneSelector = '#helpPaneFull'; // TODO: Required for fall back of help page
         // theme changes based on url
         var currentURL = document.location.host + document.location.pathname;
-        var tempBulletFix = '.n-notePreviewContainer li{margin:0 0 0 -25px;list-style-type:initial}.public-DraftStyleDefault-ul li{margin:0 0 0 -25px}';
-        var themeCss = tempBulletFix + '*{-webkit-tap-highlight-color:transparent}:focus{outline:0!important}html{position:fixed;height:100%;width:100%}'; // see app_conversion.css
+        var themeCss = '*{-webkit-tap-highlight-color:transparent}:focus{outline:0!important}html{position:fixed;height:100%;width:100%}'; // see app_conversion.css
         // function for elements
         var elementExists = function(element) {
             return (typeof(element) != 'undefined' && element != null);

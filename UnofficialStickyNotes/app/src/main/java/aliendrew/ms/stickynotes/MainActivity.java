@@ -26,7 +26,7 @@ package aliendrew.ms.stickynotes;
 //   updated, the CSS4 code being used on https://onenote.com/stickynotes will not work. More
 //   specifically https://caniuse.com/#feat=css-variables&compare=android+4.4.3-4.4.4
 // All deprecations that you might see in the build log are all taken care of, and shouldn't
-//   interfere with the newer versions of Android that don't support them.
+//   interfere with the newer versions of Android that don't support them. (up to API 29)
 
 import android.Manifest;
 import android.annotation.SuppressLint;
