@@ -38,6 +38,8 @@ javascript:(function() {
         // theme changes based on url
         var currentURL = document.location.host + document.location.pathname;
         var themeCss = '*{-webkit-tap-highlight-color:transparent}:focus{outline:0!important}html{position:fixed;height:100%;width:100%}'; // see app_conversion.css
+        var bulletFix = 'ul.public-DraftStyleDefault-ul{padding-left:1em!important}';
+        themeCss += bulletFix;
         // function for elements
         var elementExists = function(element) {
             return (typeof(element) != 'undefined' && element != null);

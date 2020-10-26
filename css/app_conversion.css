@@ -25,6 +25,11 @@ html {
 
 /* ONLY STICKY NOTES */
 
+/* Bulleted list spacing fixes (makes it parity the desktop and OneNote app) */
+ul.public-DraftStyleDefault-ul {
+  padding-left: 1em !important;
+}
+
 /* Disables the applications menu that offers other Microsoft products,
    not needed anymore since a working menu is in effect */
 /* #O365_HeaderLeftRegion {

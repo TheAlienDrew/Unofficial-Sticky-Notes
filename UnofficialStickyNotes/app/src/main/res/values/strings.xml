@@ -9,6 +9,7 @@
         \n<li>You can finally use predictive text, auto-correct, and Glide/Swipe/Loops on Gboard, SwiftKey Keyboard, and other keyboards!</li>
         \n\n<b><u>Features</u>:</b>
         \n<li>Toggle between light, dark, and system themes via the options menu.</li>
+        \n<li>Toggle on and off the ToolTips.</li>
         \n<li>You can upload/download images to/from your device.</li>
         \n<li>Works offline, but you must sign into it at least once, for the notes to show up on your device.</li>
         \n<li>Pull-to-refresh is enabled within the notes list.</li>
