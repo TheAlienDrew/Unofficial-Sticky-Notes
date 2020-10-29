@@ -35,14 +35,17 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DownloadManager;
+import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -103,6 +106,7 @@ import com.google.android.play.core.install.model.AppUpdateType;
 import com.google.android.play.core.install.model.InstallStatus;
 import com.google.android.play.core.install.model.UpdateAvailability;
 import com.google.android.play.core.tasks.Task;
+import com.google.common.collect.ImmutableMap;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -122,13 +126,11 @@ import java.util.Objects;
 public class MainActivity extends ImmersiveAppCompatActivity {
     // constants
     private static final String STICKY_NOTES_URL = "https://www.onenote.com/stickynotes";
-    private static final String STICKY_HELP_URL_START = "https://support.office.com/client/results";
     //                          STICKY_HELP_URL_START: normally this host + path is for any MS app, but in our case, it'll only lead to the Sticky Notes help page
     private static final String APP_VERSION = BuildConfig.VERSION_NAME;
     private static final String APP_NAME = "Unofficial Sticky Notes";
-    // TODO: the following commented out old code for text bug prompt (strings), might be useful to repurpose as a "rating me" popup
-    //private static final String DEV_EMAIL = "thealiendrew@gmail.com";
-    //private static final String FEEDBACK_EMAIL_HEADER = APP_NAME+" ("+APP_VERSION+") User Feedback | Device: "+Build.MANUFACTURER+' '+Build.DEVICE+" ("+Build.MODEL+") API: "+Build.VERSION.SDK_INT;
+    private static final String APP_DIRECT_DOWNLOAD = "https://raw.githubusercontent.com/TheAlienDrew/Unofficial-Sticky-Notes/master/release/app-release.apk";
+    private static final String APP_DIRECT_INFO = "https://raw.githubusercontent.com/TheAlienDrew/Unofficial-Sticky-Notes/master/release/output-metadata.json";
     private static final String POPUP_TITLE = APP_NAME + " v" + APP_VERSION;
     private static final String SAVE_DIRECTORY = Environment.DIRECTORY_PICTURES + File.separator + APP_NAME;
     // user locale
@@ -137,6 +139,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     private final String USER_COUNTRY = USER_LOCALE.getCountry();
     private final String URL_LOCALE = (TextUtils.isEmpty(USER_LANGUAGE) ? "en" : USER_LANGUAGE) + '-' + (TextUtils.isEmpty(USER_COUNTRY) ? "US" : USER_COUNTRY);
     // help page related
+    private static final String STICKY_HELP_URL_START = "https://support.office.com/client/results";
     private static final String STICKY_HELP_URL_P1 = "https://support.office.com/client/results?NS=stickynotes&Context=%7B%22ThemeId%22:";
     private static final String DARK_STICKY_HELP_THEME_ID = "4";
     private static final String LIGHT_STICKY_HELP_THEME_ID = "6";
@@ -192,35 +195,8 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     private WebView webLoadingLight;
     private WebView webStickies;
 
-    // TODO: old code for text bug prompt (theming), might be useful to repurpose as a "rating me" popup
-    /*LinearLayout tempLinear;
-    TextView tempText;
-    Button upvotePlea;
-    Button sendFeedbackBtn;
-    Button dismissMessageBtn;
-    private void setTempTheme() {
-        if (useDarkTheme) {
-            tempLinear.setBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.colorDarkPrimary));
-            MyDrawableCompat.setColorFilter(upvotePlea.getBackground(), ContextCompat.getColor(MainActivity.this, R.color.colorDarkPrimaryLight));
-            MyDrawableCompat.setColorFilter(sendFeedbackBtn.getBackground(), ContextCompat.getColor(MainActivity.this, R.color.colorDarkPrimaryLight));
-            MyDrawableCompat.setColorFilter(dismissMessageBtn.getBackground(), ContextCompat.getColor(MainActivity.this, R.color.colorDarkPrimaryLight));
-            tempText.setTextColor(Color.WHITE);
-            upvotePlea.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorAccent));
-            sendFeedbackBtn.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorAccent));
-            dismissMessageBtn.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorAccent));
-            tempText.setText(getResources().getText(R.string.tempStringDark));
-        } else {
-            tempLinear.setBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.colorLightPrimary));
-            MyDrawableCompat.setColorFilter(upvotePlea.getBackground(), ContextCompat.getColor(MainActivity.this, R.color.colorLightPrimaryDark));
-            MyDrawableCompat.setColorFilter(sendFeedbackBtn.getBackground(), ContextCompat.getColor(MainActivity.this, R.color.colorLightPrimaryDark));
-            MyDrawableCompat.setColorFilter(dismissMessageBtn.getBackground(), ContextCompat.getColor(MainActivity.this, R.color.colorLightPrimaryDark));
-            tempText.setTextColor(Color.BLACK);
-            upvotePlea.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorAccentDark));
-            sendFeedbackBtn.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorAccentDark));
-            dismissMessageBtn.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorAccentDark));
-            tempText.setText(getResources().getText(R.string.tempStringLight));
-        }
-    }*/
+    // javascript interface (variable map)
+    private static ImmutableMap<String, Integer> STRING_INTEGERS;
 
     // check system theme
     private boolean isSystemDark() {
@@ -249,20 +225,6 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         }
         return isConnected;
     }
-
-    // TODO: old code for text bug prompt (feedback sender), might be useful to repurpose as a "rating me" popup
-    // functions to allow user to send feedback
-    /*private void sendFeedback() {
-        Intent email = new Intent(Intent.ACTION_SENDTO);
-        email.putExtra(Intent.EXTRA_SUBJECT, FEEDBACK_EMAIL_HEADER);
-        email.setData(Uri.parse("mailto:"+DEV_EMAIL));
-        email.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        try {
-            startActivity(Intent.createChooser(email, "Send email using..."));
-        } catch (android.content.ActivityNotFoundException ex) {
-            Toast.makeText(MainActivity.this, "No email clients installed.", Toast.LENGTH_SHORT).show();
-        }
-    }*/
 
     // functions for permissions
     public boolean file_permission(){
@@ -407,7 +369,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         if (requestCode == APP_UPDATE_REQUEST_CODE) {
             if (resultCode != Activity.RESULT_OK) {
                 Toast.makeText(this,
-                        "App Update failed, please try again on the next app launch.",
+                        getString(R.string.updateFailed),
                         Toast.LENGTH_SHORT).show();
             }
         }
@@ -434,11 +396,11 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         Snackbar snackbar =
                 Snackbar.make(
                         findViewById(R.id.relativeLayout),
-                        "An update has just been downloaded.",
+                        getString(R.string.downloadedUpdate),
                         Snackbar.LENGTH_INDEFINITE);
         View snackBarView = snackbar.getView();
 
-        snackbar.setAction("RESTART", view -> {
+        snackbar.setAction(getString(R.string.restartBtn), view -> {
             if (appUpdateManager != null) { appUpdateManager.completeUpdate(); }
         });
 
@@ -472,6 +434,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             if (file_permission()) {
                 file_path = filePathCallback;
 
+                // TODO: DEBUG THIS SOMETIME TO FIX BLANK 0-BYTE IMAGES ISSUE
                 Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 if (takePictureIntent.resolveActivity(MainActivity.this.getPackageManager()) != null) {
                     File photoFile = null;
@@ -503,7 +466,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
 
                 Intent chooserIntent = new Intent(Intent.ACTION_CHOOSER);
                 chooserIntent.putExtra(Intent.EXTRA_INTENT, contentSelectionIntent);
-                chooserIntent.putExtra(Intent.EXTRA_TITLE, "File chooser");
+                chooserIntent.putExtra(Intent.EXTRA_TITLE, getString(R.string.fileChooser));
                 chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray);
                 startActivityForResult(chooserIntent, file_req_code);
                 return true;
@@ -517,7 +480,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             AlertDialog.Builder builder = new AlertDialog.Builder(
                     MainActivity.this);
             builder.setMessage(message)
-                    .setNeutralButton("OK", new DialogInterface.OnClickListener() {
+                    .setNeutralButton(getString(R.string.okayBtn), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface arg0, int arg1) {
                             arg0.dismiss();
@@ -543,7 +506,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 // if we are on the help page, send a toast that the user needs to view that page
                 //   online first for it to work offline
                 Toast.makeText(MainActivity.this,
-                        "You must visit the Help website once online, before you can use it offline.",
+                        getString(R.string.helpNotCached),
                         Toast.LENGTH_LONG).show();
 
                 if (view.canGoBack()) view.goBack();
@@ -553,15 +516,15 @@ public class MainActivity extends ImmersiveAppCompatActivity {
 
             final AlertDialog alertDialog = createAlertDialog(MainActivity.this);
             alertDialog.setCanceledOnTouchOutside(false);
-            alertDialog.setTitle("Error, data not cached");
-            alertDialog.setMessage("Check your internet connection and try again.");
-            alertDialog.setButton(DialogInterface.BUTTON_NEUTRAL, "Try Again", new DialogInterface.OnClickListener() {
+            alertDialog.setTitle(getString(R.string.errorNotCached));
+            alertDialog.setMessage(getString(R.string.checkInternet));
+            alertDialog.setButton(DialogInterface.BUTTON_NEUTRAL, getString(R.string.tryAgainBtn), new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
                     cacheErrorSent = false;
                     internetCacheLoad(view, null);
                 }
             });
-            alertDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Quit", new DialogInterface.OnClickListener() {
+            alertDialog.setButton(DialogInterface.BUTTON_NEGATIVE, getString(R.string.quitBtn), new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
                     cacheErrorSent = false;
                     finish();
@@ -711,31 +674,6 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         }
     }
 
-    // TODO: old code for text bug prompt (dismissal), might be useful to repurpose as a "rating me" popup
-    /*public void dismissTempMsg(View v) {
-        LinearLayout tempLinearContainer = findViewById(R.id.tempLinearContainer);
-        LinearLayout tempLinear = findViewById(R.id.tempLinear);
-        TextView tempText = findViewById(R.id.tempText);
-        LinearLayout tempButtons = findViewById(R.id.tempButtons);
-        LayoutTransition dismissTransition = new LayoutTransition();
-
-        dismissTransition.enableTransitionType(LayoutTransition.CHANGE_DISAPPEARING);
-        tempLinearContainer.setLayoutTransition(dismissTransition);
-        tempLinear.setLayoutTransition(dismissTransition);
-
-        tempText.setVisibility(TextView.GONE);
-        tempButtons.setVisibility(LinearLayout.GONE);
-
-        tempLinearContainer.removeViewAt(0);
-    }
-    public void sendFeedbackClick(View v) {
-        sendFeedback();
-    }
-    public void upvotePlea(View v) {
-        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://onenote.uservoice.com/forums/909886-sticky-notes/suggestions/40272370-sticky-notes-website-android-text-input-broken"));
-        startActivity(intent);
-    }*/
-
     @SuppressLint({"SetJavaScriptEnabled", "JavascriptInterface"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -758,18 +696,16 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 break;
         }
         disableToolTips = !prefToolTips;
+        // set string to integers map
+        STRING_INTEGERS = ImmutableMap.of(
+                "options", R.string.options,
+                "switchTheme", R.string.switchTheme,
+                "toggleToolTips", R.string.toggleToolTips,
+                "helpNotCached", R.string.helpNotCached
+        );
 
         // need splash image to focus on it after webView reloads so keyboard doesn't auto popup
         splashImage = findViewById(R.id.splashImage);
-
-        // TODO: old code for text bug prompt (initializing), might be useful to repurpose as a "rating me" popup
-        /*tempLinear = findViewById(R.id.tempLinear);
-        tempText = findViewById(R.id.tempText);
-        tempText.setMovementMethod(LinkMovementMethod.getInstance());
-        upvotePlea = findViewById(R.id.upvotePlea);
-        sendFeedbackBtn = findViewById(R.id.sendFeedbackBtn);
-        dismissMessageBtn = findViewById(R.id.dismissMessageBtn);
-        setTempTheme();*/
 
         // initialize swipe refresh layout, and disable it while first load happens
         swipeRefresher = findViewById(R.id.swipeContainer);
@@ -807,21 +743,24 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             public void onDownloadStart(String url, String userAgent,
                                         String contentDisposition, String mimeType,
                                         long contentLength) {
-                if (file_permission())
-                {
+                if (file_permission()) {
                     if (url.startsWith("blob:")) { // encode blob into base64
                         webStickies.evaluateJavascript(blobToBase64, null);
                         return;
-                    } else if (url.startsWith("data:")) { // decode base64 to file
+                    }
+
+                    if (url.startsWith("data:")) { // decode base64 to file
                         File path;
                         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) // TODO: SAME FIX ME TOO WHEN R COMES OUT
                             path = getApplicationContext().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
                         else
                             path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
                         String filetype = url.substring(url.indexOf("/") + 1, url.indexOf(";"));
-                        String filename = System.currentTimeMillis() + "." + (filetype.equals("jpeg") ? "jpg" : filetype);
+                        String customName = url.substring(url.indexOf(":") + 1, url.indexOf("/"));
+                        customName = (filetype.equals("apk") && !customName.equals("application")) ? customName : String.valueOf(System.currentTimeMillis());
+                        String filename = customName + "." + (filetype.equals("jpeg") ? "jpg" : filetype);
                         File file = new File(path, filename);
-                        Toast.makeText(getApplicationContext(), "Downloading \"" + filename + "\" ...", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), getString(R.string.downloading) + " \"" + filename + "\" ...", Toast.LENGTH_LONG).show();
                         try {
                             if (path != null && !path.exists()) //noinspection ResultOfMethodCallIgnored
                                 path.mkdirs();
@@ -846,33 +785,41 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                                         });
                             }
 
-                            Toast.makeText(getApplicationContext(), "Download succeeded!", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getApplicationContext(), getString(R.string.downloadSucceeded), Toast.LENGTH_LONG).show();
                         } catch (IOException e) {
-                            Toast.makeText(getApplicationContext(), "Download failed!", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getApplicationContext(), getString(R.string.downloadFailed), Toast.LENGTH_LONG).show();
                         }
                         return;
                     }
 
+                    DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
                     String filename = URLUtil.guessFileName(url, contentDisposition, mimeType);
-                    DownloadManager.Request request = new DownloadManager.Request(
-                            Uri.parse(url));
-                    request.setMimeType(mimeType);
+                    String downloading = getString(R.string.downloading) + " \"" + filename + "\" ...";
                     String cookies = CookieManager.getInstance().getCookie(url);
                     request.addRequestHeader("cookie", cookies);
                     request.addRequestHeader("User-Agent", userAgent);
-                    request.setDescription("Downloading \"" + filename + "\" ...");
+                    request.setMimeType(mimeType);
                     request.setTitle(filename);
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) request.allowScanningByMediaScanner();
+                    request.setDescription(downloading);
                     request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                    request.setDestinationInExternalPublicDir(
-                            Environment.DIRECTORY_DOWNLOADS, filename);
+                    request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, filename);
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) request.allowScanningByMediaScanner();
+                    request.setAllowedOverMetered(true);
+                    request.setAllowedOverRoaming(true);
                     DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
                     if (dm != null) {
                         dm.enqueue(request);
-                        Toast.makeText(getApplicationContext(), "Download succeeded!", Toast.LENGTH_LONG).show();
-                    } else Toast.makeText(getApplicationContext(), "Download failed!", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), downloading, Toast.LENGTH_SHORT).show();
+                        registerReceiver(onComplete, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+                    } else Toast.makeText(getApplicationContext(), getString(R.string.downloadFailed), Toast.LENGTH_LONG).show();
                 }
             }
+            final BroadcastReceiver onComplete = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    Toast.makeText(getApplicationContext(), getString(R.string.downloadSucceeded), Toast.LENGTH_SHORT).show();
+                }
+            };
         });
         // required to show profile pictures and allow longer login sessions
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
@@ -993,24 +940,72 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                         e.printStackTrace();
                     }
                 } else {
-                    // show a prompt for other app stores // TODO: Maybe use remnants of text bug prompt for this instead
+                    // show a prompt for other app stores
                     final PackageManager pm = getApplicationContext().getPackageManager();
                     final String installerPackageName = pm.getInstallerPackageName(getPackageName());
                     ApplicationInfo ai;
                     try {
-                        //noinspection ConstantConditions
-                        ai = pm.getApplicationInfo(installerPackageName, 0);
+                        // making sure to display correct prompt if user installed the app manually.
+                        if (installerPackageName.equals("com.google.android.packageinstaller")) {
+                            ai = null;
+                        } else {
+                            ai = pm.getApplicationInfo(installerPackageName, 0);
+                        }
                     } catch (final PackageManager.NameNotFoundException e) {
                         ai = null;
                     }
-                    final String otherInstaller = (String) (ai != null ? pm.getApplicationLabel(ai) : "your main Android app store");
-                    // TODO: NEED TO ENSURE THIS IS ACTUALLY WORKING (FIX ME???)
+                    final String otherInstaller = (String) (ai != null ? pm.getApplicationLabel(ai) : getString(R.string.installerUnknown));
 
                     final AlertDialog otherInstallerDialog = createAlertDialog(MainActivity.this);
-                    otherInstallerDialog.setTitle("New update available!");
-                    otherInstallerDialog.setMessage("Please open \"" + otherInstaller
-                            + "\" in order to update to the newest version of Unofficial Sticky Notes. I recommend going to the Google Play Store to download and install the update.");
-                    otherInstallerDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Dismiss", new DialogInterface.OnClickListener() {
+                    // doing this will allow for easier change to language strings
+                    otherInstallerDialog.setTitle(getString(R.string.updateTitle));
+                    otherInstallerDialog.setMessage(getString(R.string.updatePrompt).replace(getString(R.string.updateInstallerVariable), otherInstaller));
+                    otherInstallerDialog.setButton(DialogInterface.BUTTON_NEUTRAL, getString(R.string.downloadApkBtn), new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            webStickies.evaluateJavascript("javascript:(function() {" +
+                                    "var versionName, xhr = new XMLHttpRequest();" +
+                                    "xhr.open('GET', '" + APP_DIRECT_INFO + "', true);" +
+                                    "xhr.responseType = 'json';" +
+                                    "xhr.onload = function() {" +
+                                        "var status = xhr.status;" +
+                                        "if (status === 200) { versionName = xhr.response.elements[0].versionName; }" +
+                                        "else { var dateObj = new Date(), dd = dateObj.getUTCDate(), mm = dateObj.getUTCMonth() + 1, yyyy = dateObj.getUTCFullYear(); versionName = dd+'-'+mm+'-'+yyyy;" +
+                                    "}}; xhr.send();" +
+                                    "var waitForVersion = setInterval(function() {" +
+                                        "if (versionName != null) {" +
+                                            "clearInterval(waitForVersion);" +
+                                            "var reader = new FileReader();" +
+                                            "var xhr = new XMLHttpRequest(), link = document.createElement('a'), file;" +
+                                            "xhr.open('GET', '" + APP_DIRECT_DOWNLOAD + "', true);" +
+                                            "xhr.responseType = 'blob';" +
+                                            "xhr.onload = function () {" +
+                                            "file = new Blob([xhr.response], { type : '" + getApplicationContext().getPackageName() + "_' + versionName + '/apk' });" +
+                                            "reader.readAsDataURL(file);" +
+                                            "reader.onloadend = function() {" +
+                                            "var base64data = reader.result;" +
+                                            "link.download = '';" +
+                                            "link.href = base64data;" +
+                                            "link.click();" +
+                                            "}" +
+                                            "};" +
+                                            "xhr.send();" +
+                                    "}}, 100);})()", null);
+                        }
+                    });
+                    otherInstallerDialog.setButton(DialogInterface.BUTTON_NEGATIVE, getString(R.string.updateBtn), new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            // show available app stores that the app may be downloaded from
+                            Uri marketUrl = Uri.parse("market://details?id=" + getApplicationContext().getPackageName());
+                            Intent marketIntent = new Intent(Intent.ACTION_VIEW, marketUrl);
+
+                            PackageManager packageManager = getPackageManager();
+                            List<ResolveInfo> activities = packageManager.queryIntentActivities(marketIntent, 0);
+                            if (activities.size() > 0) {
+                                startActivity(marketIntent);
+                            }
+                        }
+                    });
+                    otherInstallerDialog.setButton(DialogInterface.BUTTON_POSITIVE, getString(R.string.dismissBtn), new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             otherInstallerDialog.dismiss();
                         }
@@ -1106,7 +1101,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 return true;
             }
             singleBack = true;
-            Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.pressBackToExit), Toast.LENGTH_SHORT).show();
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -1145,31 +1140,40 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     } */
     private void toggleThemePrompt() {
         final AlertDialog toggleThemeDialog = createAlertDialog(MainActivity.this);
-        toggleThemeDialog.setTitle("Themes");
-        toggleThemeDialog.setMessage("Press a theme button below to change theme, or touch anywhere outside the prompt to cancel.");
-        if (!useSystemTheme) {
-            toggleThemeDialog.setButton(DialogInterface.BUTTON_NEUTRAL, "System", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int which) {
-                    useSystemTheme = true;
-                    toggleTheme("system");
-                }
-            });
-        }
-        if (useDarkTheme) {
-            toggleThemeDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Light", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int which) {
-                    useSystemTheme = false;
-                    toggleTheme("light");
-                }
-            });
+        toggleThemeDialog.setTitle(getString(R.string.themesTitle));
+        toggleThemeDialog.setMessage(getString(R.string.themesMessage));
+
+        String negativeText;
+        String negativeMode;
+        String positiveText;
+        String positiveMode;
+
+        if (useSystemTheme) {
+            negativeText = getString(R.string.themeLight);
+            negativeMode = "light";
+            positiveText = getString(R.string.themeDark);
+            positiveMode = "dark";
         } else {
-            toggleThemeDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Dark", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int which) {
-                    useSystemTheme = false;
-                    toggleTheme("dark");
-                }
-            });
+            negativeText = useDarkTheme ? getString(R.string.themeLight) : getString(R.string.themeDark);
+            negativeMode = useDarkTheme ? "light" : "dark";
+            positiveText = getString(R.string.themeSystem);
+            positiveMode = "system";
         }
+        String finalNegativeMode = negativeMode;
+        String finalPositiveMode = positiveMode;
+
+        toggleThemeDialog.setButton(DialogInterface.BUTTON_NEGATIVE, negativeText, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                useSystemTheme = false;
+                toggleTheme(finalNegativeMode);
+            }
+        });
+        toggleThemeDialog.setButton(DialogInterface.BUTTON_POSITIVE, positiveText, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                useSystemTheme = true;
+                toggleTheme(finalPositiveMode);
+            }
+        });
         toggleThemeDialog.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
             public void onShow(DialogInterface arg0) {
@@ -1186,7 +1190,19 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             disableReloading = true;
 
             // show theme update info
-            String displayToast = theTheme.substring(0, 1).toUpperCase() + theTheme.substring(1).toLowerCase() + " theme enabled";
+            String getTranslatableTheme = null;
+            switch (theTheme) {
+                case "light":
+                    getTranslatableTheme = getString(R.string.themeLight);
+                    break;
+                case "dark":
+                    getTranslatableTheme = getString(R.string.themeDark);
+                    break;
+                case "system":
+                    getTranslatableTheme = getString(R.string.themeSystem);
+                    break;
+            }
+            String displayToast = getTranslatableTheme + ' ' + getString(R.string.themeEnabled);
             Toast.makeText(this, displayToast, Toast.LENGTH_SHORT).show();
 
             // determine theme by user choice or by system settings
@@ -1212,7 +1228,6 @@ public class MainActivity extends ImmersiveAppCompatActivity {
 
             if (updatedToNewVersion) popupDialog.dismiss();
             useDarkTheme = darkTheme;
-            // setTempTheme(); // TODO: old code for text bug prompt (sets theme), might be useful to repurpose as a "rating me" popup
             internetCacheLoad(webStickies, null);
         }
     }
@@ -1223,7 +1238,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             disableReloading = true;
 
             // show theme update info
-            String displayToast = "ToolTips " + (disableToolTips ? "enabled" : "disabled");
+            String displayToast = getString(R.string.toolTips) + ' ' + (disableToolTips ? getString(R.string.enabled) : getString(R.string.disabled));
             Toast.makeText(this, displayToast, Toast.LENGTH_SHORT).show();
 
             SharedPreferences.Editor editor = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit();
@@ -1234,17 +1249,6 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             internetCacheLoad(webStickies, null);
         }
     }
-
-    // TODO: old code for text bug prompt (relates to background of prompt somehow), might be useful to repurpose as a "rating me" popup
-    /*public static class MyDrawableCompat {
-        public static void setColorFilter(@NonNull Drawable drawable, int color) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                drawable.setColorFilter(new BlendModeColorFilter(color, BlendMode.SRC_ATOP));
-            } else {
-                drawable.setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
-            }
-        }
-    }*/
 
     class StickiesJS {
         // check if it's dark theme for javascript
@@ -1261,6 +1265,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 public void run() {
                     if (choice) {
                         // animate visibility as fade
+                        // TODO: May not need this if switched to CSS equivalent
                         webStickies.evaluateJavascript("javascript:(function() {" +
                                 "var animationTime = 0;" +
                                 "var fadeIn = setInterval(frame, 10);" +
@@ -1271,9 +1276,6 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                         webStickies.setVisibility(View.VISIBLE);
                         // make sure one loading screen is available after first launch
                         if (appLaunched) {
-                            // TODO: old code for text bug prompt (sets visibility), might be useful to repurpose as a "rating me" popup
-                            // tempLinear.setVisibility(View.VISIBLE);
-
                             if (useDarkTheme) webLoadingDark.setVisibility(View.VISIBLE);
                             else webLoadingLight.setVisibility(View.VISIBLE);
                             appLaunched = false;
@@ -1357,6 +1359,24 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 @Override
                 public void run() {
                     setToImmersiveMode(choice);
+                }
+            });
+        }
+
+        // returns Android strings to webView
+        @JavascriptInterface
+        // can't be null anyways
+        public String getAndroidString(String stringVariable) {
+            return getResources().getString(STRING_INTEGERS.get(stringVariable));
+        }
+
+        // show other app installer prompt for update
+        @JavascriptInterface
+        public void showOtherInstallerUpdate(String versionName) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+
                 }
             });
         }

@@ -9,6 +9,8 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <!-- read/write external storage is needed for saving/uploading camera-taken photos (Android Q and below) -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!-- allows app to be uploaded to the Samsung Galaxy App Store, but isn't actually using the Samsung Mobile SDK -->
+    <uses-permission android:name="com.samsung.android.providers.context.permission.WRITE_USE_APP_FEATURE_SURVEY"/>
 
     <!-- Might not need supportsRtl since the webView may or may not need it (language text formatting) -->
     <!-- Additionally, usesCleartextTraffic might not be needed if I remove -->

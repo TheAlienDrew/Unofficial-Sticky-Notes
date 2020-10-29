@@ -1,19 +1,17 @@
 {
-  "version": 1,
+  "version": 2,
   "artifactType": {
     "type": "APK",
     "kind": "Directory"
   },
   "applicationId": "aliendrew.ms.stickynotes",
-  "variantName": "release",
+  "variantName": "processReleaseResources",
   "elements": [
     {
       "type": "SINGLE",
       "filters": [],
-      "properties": [],
-      "versionCode": 68,
-      "versionName": "3.0.4",
-      "enabled": true,
+      "versionCode": 69,
+      "versionName": "3.1.0",
       "outputFile": "app-release.apk"
     }
   ]

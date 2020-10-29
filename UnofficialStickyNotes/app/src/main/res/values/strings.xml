@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Unofficial Sticky Notes</string>
-    <string name="splashImgDesc">Splash image for app launch</string>
     <string name="popupInfo"><b>If you want Microsoft to create a true standalone version of Sticky Notes as a separate app, please head to the <a href="https://www.change.org/standalone-sticky-notes-microsoft">petition</a> I created to make Sticky Notes a standalone app, and sign it.</b>
         \n\nThis app is open-sourced, so if you know how to code and want to help, check out the <a href="https://github.com/TheAlienDrew/Unofficial-Sticky-Notes">Unofficial Sticky Notes GitHub</a> page.
         \n\n<b><u>News</u>:</b>
@@ -15,10 +14,43 @@
         \n<li>Pull-to-refresh is enabled within the notes list.</li>
         \n<li>Obviously, no ads whatsoever.</li>
         \n\n<b><u>Planned Features</u>:</b>
-        \n<li>Widgets for single notes (these won\'t be able to sync automatically).</li>
-        \n<li>Undo/redo buttons when editing notes, only after enough request for the feature.</li>
+        \n<li>Widgets for single notes (I won\'t be able to work on this until winter break, as I have college to focus on).</li>
     </string>
+    <string name="pressBackToExit">Please press BACK again to exit</string>
+    <string name="helpNotCached">Sorry, but you must visit that part of the help page online first before it can load offline.</string>
+    <string name="errorNotCached">Error, data not cached</string>
+    <string name="checkInternet">Check your internet connection and try again.</string>
+    <string name="fileChooser">File chooser</string>
+    <string name="okayBtn">OK</string>
+    <string name="tryAgainBtn">Try Again</string>
+    <string name="quitBtn">Quit</string>
     <string name="closeBtn">Close</string>
+    <string name="dismissBtn">Dismiss</string>
+    <string name="restartBtn">Restart</string>
+    <string name="updateBtn">Update</string>
+    <string name="downloadApkBtn">Download APK</string>
+    <string name="downloadedUpdate">An update has just been downloaded.</string>
+    <string name="downloading">Downloading</string>
+    <string name="downloadSucceeded">Download succeeded!</string>
+    <string name="downloadFailed">Download failed!</string>
+    <string name="updateTitle">New update available!</string>
+    <string name="updateInstallerVariable" translatable="false">OTHER_INSTALLER</string>
+    <!-- OTHER_INSTALLER is just a temporary place holder to be replaced by the actual installer name, or lack there of. -->
+    <string name="updatePrompt">Please open <b>OTHER_INSTALLER</b>, or download the app APK manually, in order to update to the newest version of Unofficial Sticky Notes.</string>
+    <string name="updateFailed">"App update failed, please try again on the next app launch."</string>
+    <string name="installerUnknown">your primary app store</string>
+    <string name="enabled">enabled</string>
+    <string name="disabled">disabled</string>
+    <string name="options">Options</string>
+    <string name="toolTips">ToolTips</string>
+    <string name="toggleToolTips">Toggle ToolTips</string>
+    <string name="switchTheme">Switch Theme</string>
+    <string name="themeEnabled">theme enabled</string>
+    <string name="themesTitle">Themes</string>
+    <string name="themesMessage">Press a theme button below to change theme, or touch anywhere outside the prompt to cancel.</string>
+    <string name="themeLight">Light</string>
+    <string name="themeDark">Dark</string>
+    <string name="themeSystem">System</string>
     <!-- TODO: old code for text bug prompt (string constants), might be useful to repurpose as a "rating me" popup -->
     <!--<string name="sendFeedback">Send Feedback</string>
     <string name="tempStringDark"><b><font color="#f44336">IMPORTANT!</font> If you can\'t type in any notes, then this is because of Microsoft introducing a new text bug that I can\'t fix. If you\'d like to have it fixed faster, please upvote the plea to get it fixed by clicking the corresponding button. If however it is working, please send me feedback about what keyboard you are using and what settings you\'ve applied.\n\nI\'ll remove this prompt after the bug is fixed.</b></string>

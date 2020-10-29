@@ -8,6 +8,7 @@ javascript:(function() {
         const disableSwipe = 1;
         const slowDelay = 1000;
         const fastDelay = 100;
+        const helpPageTimeout = 10*slowDelay;
         // constant selectors
         const mainLinkNavMenuSelector = '#O365_MainLink_NavMenu';
         const mainLinkNavMenuCloseButtonSelector = '#appLauncherTop > button';
@@ -38,7 +39,7 @@ javascript:(function() {
         // theme changes based on url
         var currentURL = document.location.host + document.location.pathname;
         var themeCss = '*{-webkit-tap-highlight-color:transparent}:focus{outline:0!important}html{position:fixed;height:100%;width:100%}'; // see app_conversion.css
-        var bulletFix = 'ul.public-DraftStyleDefault-ul{padding-left:1em!important}';
+        var bulletFix = '[class^=n-Phone] ul.public-DraftStyleDefault-ul,[class^=n-Tablet] ul.public-DraftStyleDefault-ul{padding-left:1em!important}[class^=n-Desktop] ul.public-DraftStyleDefault-ul{padding-left:1.2em!important}';
         themeCss += bulletFix;
         // function for elements
         var elementExists = function(element) {
@@ -72,6 +73,7 @@ javascript:(function() {
 
                 // sidePane.lastElementChild.innerText is the best way to determine that notes are loaded
                 // trying to see if the loading animation appeared and disappeared won't always work (can be too fast)
+                // TODO: Might need to come back to fix this yet again if different locales change the loading notes text
                 if(elementExists(mainLinkNavMenu) && elementExists(sidePane) && sidePane.lastElementChild.innerText != 'Loading your notes...') {
                     clearInterval(checkLoading);
 
@@ -107,7 +109,7 @@ javascript:(function() {
                                         allAppsLinkSpacer.remove();
                                         allAppsLink.remove();
                                         // change some things
-                                        headerLeftTitle.innerText = 'Options';
+                                        headerLeftTitle.innerText = window.Android.getAndroidString('options');
                                         // create template link
                                         var outlookAction = primaryLinks.children[0];
                                         var templateAction = outlookAction.cloneNode(true);
@@ -131,7 +133,7 @@ javascript:(function() {
                                         var themeModeText = themeModeLink.lastChild.firstChild;
                                         themeModeLink.href = 'javascript:(function(){ window.Android.promptSwitchTheme() })()';
                                         themeModeLink.id = 'SwitchTheme';
-                                        themeModeLink.ariaLabel = themeModeText.innerText = 'Switch Theme';
+                                        themeModeLink.ariaLabel = themeModeText.innerText = window.Android.getAndroidString('switchTheme');
                                         if (isDarkMode) {
                                             themeModeLogo.className = 'ms-Icon--MoonWhiteLogo ' + themeModeLogo.className;
                                         } else {
@@ -145,7 +147,7 @@ javascript:(function() {
                                         var toggleToolTipsText = toggleToolTipsLink.lastChild.firstChild;
                                         toggleToolTipsLink.href = 'javascript:(function(){ window.Android.promptToggleToolTips() })()';
                                         toggleToolTipsLink.id = 'ToggleToolTips';
-                                        toggleToolTipsLink.ariaLabel = toggleToolTipsText.innerText = 'Toggle ToolTips';
+                                        toggleToolTipsLink.ariaLabel = toggleToolTipsText.innerText = window.Android.getAndroidString('toggleToolTips');
                                         if (isDarkMode) {
                                             toggleToolTipsLogo.className = 'ms-Icon--ToolTipWhiteLogo ' + toggleToolTipsLogo.className;
                                         } else {
@@ -206,20 +208,28 @@ javascript:(function() {
                             helpButton.onclick = function () {
                                 window.Android.webViewSetVisible(false);
 
-                                var helpIFrameSelector = helpPaneSelector + ' iframe'; // TODO: DISABLED BECAUSE WEBVIEW DOESN'T ACTIVATE DYNAMIC JAVASCRIPT/CSS BEYOND THE FIRST IFRAME
+                                var helpIFrameSelector = helpPaneSelector + ' iframe';
                                 var helpIFrameLoaded = false;
                                 var checkForHelp = setInterval(function () {
                                     var helpIFrame = document.querySelector(helpIFrameSelector);
 
-                                    if (elementExists(helpIFrame)) { // TODO: FIX ME WHEN NO INTERNET AND NOT CACHED!!!
+                                    var helpPageTimed = 0;
+                                    if (elementExists(helpIFrame) || helpPageTimed == helpPageTimeout) {
                                         clearInterval(checkForHelp);
 
-                                        helpIFrame.onload = function() {
-                                            window.Android.loadStickiesHelp();
-                                        };
+                                        if (helpPageTimed == helpPageTimeout) {
+                                            var helpNotCached = window.Android.getAndroidString('helpNotCached');
+                                            alert(helpNotCached);
+                                        } else {
+                                            helpIFrame.onload = function() {
+                                                window.Android.loadStickiesHelp();
+                                            };
 
-                                        // change to the new URL
-                                        helpIFrame.src = window.Android.getHelpUrl();
+                                            // change to the new URL
+                                            helpIFrame.src = window.Android.getHelpUrl();
+                                        }
+
+                                        helpPageTimed += slowDelay;
                                     }
                                 }, slowDelay);
                             };

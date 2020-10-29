@@ -17,7 +17,7 @@
         android:focusableInTouchMode="true"
         android:scaleType="center"
         android:src="@drawable/ic_splash"
-        android:contentDescription="@string/splashImgDesc" />
+        tools:ignore="ContentDescription" />
 
     <WebView
         android:id="@+id/loadingLight"

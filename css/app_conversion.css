@@ -26,8 +26,11 @@ html {
 /* ONLY STICKY NOTES */
 
 /* Bulleted list spacing fixes (makes it parity the desktop and OneNote app) */
-ul.public-DraftStyleDefault-ul {
+[class^="n-Phone"] ul.public-DraftStyleDefault-ul, [class^="n-Tablet"] ul.public-DraftStyleDefault-ul {
   padding-left: 1em !important;
+}
+[class^="n-Desktop"] ul.public-DraftStyleDefault-ul {
+  padding-left: 1.2em !important;
 }
 
 /* Disables the applications menu that offers other Microsoft products,
