@@ -39,8 +39,9 @@ javascript:(function() {
         // theme changes based on url
         var currentURL = document.location.host + document.location.pathname;
         var themeCss = '*{-webkit-tap-highlight-color:transparent}:focus{outline:0!important}html{position:fixed;height:100%;width:100%}'; // see app_conversion.css
-        var bulletFix = '[class^=n-Phone] ul.public-DraftStyleDefault-ul,[class^=n-Tablet] ul.public-DraftStyleDefault-ul{padding-left:1em!important}[class^=n-Desktop] ul.public-DraftStyleDefault-ul{padding-left:1.2em!important}';
-        themeCss += bulletFix;
+        var fadeInCss = '.fade-in{animation:fadeIn ease .2s;-webkit-animation:fadeIn ease .2s}@keyframes fadeIn{0%{opacity:0}100%{opacity:1}}@-webkit-keyframes fadeIn{0%{opacity:0}100%{opacity:1}}';
+        themeCss += fadeInCss;
+
         // function for elements
         var elementExists = function(element) {
             return (typeof(element) != 'undefined' && element != null);
@@ -385,7 +386,7 @@ javascript:(function() {
                     theScrollTop = getScrollTop();
                     window.Android.setSwipeRefresher(theScrollTop, editingActive);
                     // set webView to visible after a small delay (so the loading gif on page disappears a bit more)
-                    document.body.style.opacity = 0;
+                    document.body.classList.add('fade-in'); // animate opacity as fade before showing page
                     setTimeout(function() {
                         window.Android.webViewSetVisible(true);
                     }, slowDelay);

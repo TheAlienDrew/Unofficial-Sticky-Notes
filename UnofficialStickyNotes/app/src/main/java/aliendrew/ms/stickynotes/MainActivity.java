@@ -228,7 +228,8 @@ public class MainActivity extends ImmersiveAppCompatActivity {
 
     // functions for permissions
     public boolean file_permission(){
-        if (Build.VERSION.SDK_INT >=23 && (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)) {
+        // TODO: Build.VERSION.SDK_INT <= 29: might need to be added to prepare for API 30 support
+        if (Build.VERSION.SDK_INT >= 23 && (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)) {
             ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
             return false;
         } else {
@@ -270,8 +271,8 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             // TODO: this is only a temp fix for when Android R comes out
             storageDir = getApplicationContext().getExternalFilesDir(SAVE_DIRECTORY);
         else
-            // TODO: getExternalStoragePublicDirectory only works on Android Q because I've enabled
-            //  requestLegacyExternalStorage in the AndroidManifest, otherwise it's deprecated
+            // NOTE: getExternalStoragePublicDirectory only works on Android Q because I've enabled
+            //       requestLegacyExternalStorage in the AndroidManifest, otherwise it's deprecated
             storageDir = Environment.getExternalStoragePublicDirectory(SAVE_DIRECTORY);
 
         // need to create the directory if not already there
@@ -365,6 +366,11 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 }
             }
         }
+        if (results != null) {
+            file_path.onReceiveValue(results);
+            file_path = null;
+        }
+
         // if we are doing an update, show the following
         if (requestCode == APP_UPDATE_REQUEST_CODE) {
             if (resultCode != Activity.RESULT_OK) {
@@ -372,11 +378,6 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                         getString(R.string.updateFailed),
                         Toast.LENGTH_SHORT).show();
             }
-        }
-
-        if (results != null) {
-            file_path.onReceiveValue(results);
-            file_path = null;
         }
     }
 
@@ -469,6 +470,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 chooserIntent.putExtra(Intent.EXTRA_TITLE, getString(R.string.fileChooser));
                 chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray);
                 startActivityForResult(chooserIntent, file_req_code);
+
                 return true;
             } else return false;
         }
@@ -479,6 +481,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             // modified to not show website url
             AlertDialog.Builder builder = new AlertDialog.Builder(
                     MainActivity.this);
+            //noinspection Convert2Lambda
             builder.setMessage(message)
                     .setNeutralButton(getString(R.string.okayBtn), new DialogInterface.OnClickListener() {
                         @Override
@@ -518,18 +521,21 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             alertDialog.setCanceledOnTouchOutside(false);
             alertDialog.setTitle(getString(R.string.errorNotCached));
             alertDialog.setMessage(getString(R.string.checkInternet));
+            //noinspection Convert2Lambda
             alertDialog.setButton(DialogInterface.BUTTON_NEUTRAL, getString(R.string.tryAgainBtn), new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
                     cacheErrorSent = false;
                     internetCacheLoad(view, null);
                 }
             });
+            //noinspection Convert2Lambda
             alertDialog.setButton(DialogInterface.BUTTON_NEGATIVE, getString(R.string.quitBtn), new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
                     cacheErrorSent = false;
                     finish();
                 }
             });
+            //noinspection Convert2Lambda
             alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
                 @Override
                 public void onShow(DialogInterface arg0) {
@@ -775,6 +781,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
 
                             // Tell the media scanner about the new file so that it is immediately available to the user.
                             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                                //noinspection Convert2Lambda
                                 MediaScannerConnection.scanFile(getApplicationContext(),
                                         new String[]{file.toString()}, null,
                                         new MediaScannerConnection.OnScanCompletedListener() {
@@ -844,6 +851,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         internetCacheLoad(webStickies, STICKY_NOTES_URL);
 
         // add swipe to refresh listener
+        //noinspection Convert2Lambda
         swipeRefresher.setOnRefreshListener(
             new SwipeRefreshLayout.OnRefreshListener() {
                 @Override
@@ -888,6 +896,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             popupInfo.setLinkTextColor(ContextCompat.getColor(this, linkColor));
             Button closePopupBtn = dialog.findViewById(R.id.closePopupBtn);
 
+            //noinspection Convert2Lambda
             closePopupBtn.setOnClickListener(new View.OnClickListener()
             {
                 @Override
@@ -960,6 +969,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                     // doing this will allow for easier change to language strings
                     otherInstallerDialog.setTitle(getString(R.string.updateTitle));
                     otherInstallerDialog.setMessage(getString(R.string.updatePrompt).replace(getString(R.string.updateInstallerVariable), otherInstaller));
+                    //noinspection Convert2Lambda
                     otherInstallerDialog.setButton(DialogInterface.BUTTON_NEUTRAL, getString(R.string.downloadApkBtn), new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             webStickies.evaluateJavascript("javascript:(function() {" +
@@ -992,6 +1002,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                                     "}}, 100);})()", null);
                         }
                     });
+                    //noinspection Convert2Lambda
                     otherInstallerDialog.setButton(DialogInterface.BUTTON_NEGATIVE, getString(R.string.updateBtn), new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             // show available app stores that the app may be downloaded from
@@ -1005,11 +1016,13 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                             }
                         }
                     });
+                    //noinspection Convert2Lambda
                     otherInstallerDialog.setButton(DialogInterface.BUTTON_POSITIVE, getString(R.string.dismissBtn), new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             otherInstallerDialog.dismiss();
                         }
                     });
+                    //noinspection Convert2Lambda
                     otherInstallerDialog.setOnShowListener(new DialogInterface.OnShowListener() {
                         @Override
                         public void onShow(DialogInterface arg0) {
@@ -1102,6 +1115,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             }
             singleBack = true;
             Toast.makeText(this, getString(R.string.pressBackToExit), Toast.LENGTH_SHORT).show();
+            //noinspection Convert2Lambda
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -1162,18 +1176,21 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         String finalNegativeMode = negativeMode;
         String finalPositiveMode = positiveMode;
 
+        //noinspection Convert2Lambda
         toggleThemeDialog.setButton(DialogInterface.BUTTON_NEGATIVE, negativeText, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 useSystemTheme = false;
                 toggleTheme(finalNegativeMode);
             }
         });
+        //noinspection Convert2Lambda
         toggleThemeDialog.setButton(DialogInterface.BUTTON_POSITIVE, positiveText, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 useSystemTheme = true;
                 toggleTheme(finalPositiveMode);
             }
         });
+        //noinspection Convert2Lambda
         toggleThemeDialog.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
             public void onShow(DialogInterface arg0) {
@@ -1260,19 +1277,11 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         // used to enable webView after fully loaded theme
         @JavascriptInterface
         public void webViewSetVisible(boolean choice) {
+            //noinspection Convert2Lambda
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     if (choice) {
-                        // animate visibility as fade
-                        // TODO: May not need this if switched to CSS equivalent
-                        webStickies.evaluateJavascript("javascript:(function() {" +
-                                "var animationTime = 0;" +
-                                "var fadeIn = setInterval(frame, 10);" +
-                                "function frame() {" +
-                                  "if (document.body.style.opacity == 1) { clearInterval(fadeIn); document.body.style.opacity = ''; }" +
-                                  "else { animationTime += 0.05; document.body.style.opacity = animationTime; }" +
-                                "} })()", null);
                         webStickies.setVisibility(View.VISIBLE);
                         // make sure one loading screen is available after first launch
                         if (appLaunched) {
@@ -1293,6 +1302,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         // soft keyboard open or being at anywhere but the top of the page will disable swipe to refresh
         @JavascriptInterface
         public void setSwipeRefresher(final int scrollTop, final boolean editActive) {
+            //noinspection Convert2Lambda
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -1324,6 +1334,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         public void setCloseAvailable(final boolean availability, final String elementToClick) {
             closeButtonActive = availability;
             closeButtonSelector = elementToClick;
+            //noinspection Convert2Lambda
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -1342,6 +1353,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         // load help in fullscreen
         @JavascriptInterface
         public void loadStickiesHelp() {
+            //noinspection Convert2Lambda
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -1355,6 +1367,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         // setToImmersive from the web
         @JavascriptInterface
         public void setToImmersive(boolean choice) {
+            //noinspection Convert2Lambda
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -1373,6 +1386,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         // show other app installer prompt for update
         @JavascriptInterface
         public void showOtherInstallerUpdate(String versionName) {
+            //noinspection Convert2Lambda
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
