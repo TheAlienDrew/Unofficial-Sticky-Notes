@@ -21,6 +21,7 @@
     <string name="errorNotCached">Error, data not cached</string>
     <string name="checkInternet">Check your internet connection and try again.</string>
     <string name="fileChooser">File chooser</string>
+    <string name="cameraUseFailed">Something went wrong getting image from camera.</string>
     <string name="okayBtn">OK</string>
     <string name="tryAgainBtn">Try Again</string>
     <string name="quitBtn">Quit</string>

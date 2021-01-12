@@ -39,7 +39,7 @@ javascript:(function() {
         // theme changes based on url
         var currentURL = document.location.host + document.location.pathname;
         var themeCss = '*{-webkit-tap-highlight-color:transparent}:focus{outline:0!important}html{position:fixed;height:100%;width:100%}'; // see app_conversion.css
-        var fadeInCss = '.fade-in{animation:fadeIn ease .2s;-webkit-animation:fadeIn ease .2s}@keyframes fadeIn{0%{opacity:0}100%{opacity:1}}@-webkit-keyframes fadeIn{0%{opacity:0}100%{opacity:1}}';
+        var fadeInCss = '.fade-in-AlienDrew{animation:fadeInAlienDrew ease .2s;-webkit-animation:fadeInAlienDrew ease .2s}@keyframes fadeInAlienDrew{0%{opacity:0}100%{opacity:1}}@-webkit-keyframes fadeInAlienDrew{0%{opacity:0}100%{opacity:1}}';
         themeCss += fadeInCss;
 
         // function for elements
@@ -386,7 +386,7 @@ javascript:(function() {
                     theScrollTop = getScrollTop();
                     window.Android.setSwipeRefresher(theScrollTop, editingActive);
                     // set webView to visible after a small delay (so the loading gif on page disappears a bit more)
-                    document.body.classList.add('fade-in'); // animate opacity as fade before showing page
+                    document.body.classList.add('fade-in-AlienDrew'); // animate opacity as fade before showing page
                     setTimeout(function() {
                         window.Android.webViewSetVisible(true);
                     }, slowDelay);
@@ -414,8 +414,6 @@ javascript:(function() {
                     // let login pages not fade in (just appear)
                     var helpLink = window.Android.getHelpUrl();
                     if (document.location.host != neverCached && currentURL != helpLink) {
-                        // opacity needs to be set to not look weird with the fadeIn effect
-                        document.body.style.opacity = 1;
                         window.Android.webViewSetVisible(true);
                     }
                 }
