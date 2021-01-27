@@ -1,9 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Normal Colors -->
+    <color name="colorBlack">#000</color>
+    <color name="colorGray">#808080</color>
+    <color name="colorWhite">#FFF</color>
+    <color name="transparent">#00000000</color>
+    <!-- App Colors -->
     <color name="colorLightPrimary">#E5E5E5</color>
     <color name="colorLightPrimaryDark">#CCCCCC</color>
     <color name="colorDarkPrimaryLight">#4F4F4F</color>
     <color name="colorDarkPrimary">#3D3D3D</color>
     <color name="colorAccent">#00f4fe</color>
     <color name="colorAccentDark">#007F71</color>
+    <color name="light_blue_50">#FFE1F5FE</color>
+    <color name="light_blue_200">#FF81D4FA</color>
+    <color name="light_blue_600">#FF039BE5</color>
+    <color name="light_blue_900">#FF01579B</color>
+
+    <!-- Widget Colors -->
+
+    <!-- Widget Invalid -->
+    <color name="invalidStroke">#FF0</color>
+    <color name="invalidBackground">#F00</color>
+    <color name="invalidTimestampText">#000</color>
+    <color name="invalidContentText">#FFF</color>
+    <color name="invalidContentLink">#0FF</color>
+    <color name="invalidContentInk">#FFF</color>
+    <!-- Widget Defaults Dark -->
+    <color name="darkTimestampText">#999</color>
+    <color name="darkContentText">#E1E1E1</color>
+    <color name="darkContentLink">#35A0CA</color>
+    <!-- Dark Extras -->
+    <color name="darkBackground">#2D2D2D</color>
+    <color name="darkContentInk">#E1E1E1</color>
+    <!-- Widget Defaults Light -->
+    <color name="lightTimestamp">#605E5C</color>
+    <color name="lightContentText">#323130</color>
+    <color name="lightContentLink">#3F00FF</color>
+    <!-- Widget Defaults Yellow -->
+    <color name="yellowDarkStroke">#E9C103</color>
+    <color name="yellowLightStroke">#FFEE92</color>
+    <color name="yellowLightBackground">#FFF6CB</color>
+    <color name="yellowLightInk">#000</color>
+    <!-- Widget Defaults Green -->
+    <color name="greenDarkStroke">#70C265</color>
+    <color name="greenLightStroke">#D1EBCB</color>
+    <color name="greenLightBackground">#E7F6E4</color>
+    <color name="greenLightInk">#8907C8</color>
+    <!-- Widget Defaults Pink -->
+    <color name="pinkDarkStroke">#ED91C9</color>
+    <color name="pinkLightStroke">#FFC5E1</color>
+    <color name="pinkLightBackground">#FFE3F1</color>
+    <color name="pinkLightInk">#007041</color>
+    <!-- Widget Defaults Purple -->
+    <color name="purpleDarkStroke">#CE99FF</color>
+    <color name="purpleLightStroke">#E2D0F5</color>
+    <color name="purpleLightBackground">#F2E5FF</color>
+    <color name="purpleLightInk">#016681</color>
+    <!-- Widget Defaults Blue -->
+    <color name="blueDarkStroke">#5CB3D2</color>
+    <color name="blueLightStroke">#CCE7FF</color>
+    <color name="blueLightBackground">#E7F3FF</color>
+    <color name="blueLightInk">#F14E00</color>
+    <!-- Widget Defaults Gray -->
+    <color name="grayDarkStroke">#B3B3B3</color>
+    <color name="grayLightStroke">#DDDAD8</color>
+    <color name="grayLightBackground">#EDEBE9</color>
+    <color name="grayLightInk">#302821</color>
+    <!-- Widget Defaults Charcoal -->
+    <color name="charcoalDarkStroke">#4D4D4D</color>
+    <color name="charcoalLightStroke">#3F3D3C</color>
+    <color name="charcoalLightBackground">#5E5E5E</color>
+    <color name="charcoalLightInk">#FFF</color>
+    <!-- Charcoal Extras -->
+    <color name="charcoalLightTimestampText">#BFBFBF</color>
+    <color name="charcoalLightContentText">#FFF</color>
+    <color name="charcoalLightContentLink">#B4FAFF</color>
 </resources>

@@ -126,7 +126,6 @@ import java.util.Objects;
 public class MainActivity extends ImmersiveAppCompatActivity {
     // constants
     private static final String STICKY_NOTES_URL = "https://www.onenote.com/stickynotes";
-    //                          STICKY_HELP_URL_START: normally this host + path is for any MS app, but in our case, it'll only lead to the Sticky Notes help page
     private static final String APP_VERSION = BuildConfig.VERSION_NAME;
     private static final String APP_NAME = "Unofficial Sticky Notes";
     private static final String APP_DIRECT_DOWNLOAD = "https://raw.githubusercontent.com/TheAlienDrew/Unofficial-Sticky-Notes/master/release/app-release.apk";
@@ -140,7 +139,8 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     private final String URL_LOCALE = (TextUtils.isEmpty(USER_LANGUAGE) ? "en" : USER_LANGUAGE) + '-' + (TextUtils.isEmpty(USER_COUNTRY) ? "US" : USER_COUNTRY);
     // help page related
     private static final String STICKY_HELP_URL_START = "https://support.office.com/client/results";
-    private static final String STICKY_HELP_URL_P1 = "https://support.office.com/client/results?NS=stickynotes&Context=%7B%22ThemeId%22:";
+    //                          STICKY_HELP_URL_START: normally this URL is for any MS app, but in our case, it'll only lead to the Sticky Notes help page
+    private static final String STICKY_HELP_URL_P1 = STICKY_HELP_URL_START + "?NS=stickynotes&Context=%7B%22ThemeId%22:";
     private static final String DARK_STICKY_HELP_THEME_ID = "4";
     private static final String LIGHT_STICKY_HELP_THEME_ID = "6";
     private static final String STICKY_HELP_URL_P2 = ",%22LinkColor%22:%22";
@@ -172,6 +172,9 @@ public class MainActivity extends ImmersiveAppCompatActivity {
     private static final int file_req_code = 1;
     // file blob converting javascript
     private static final String blobToBase64 = "javascript: (function() {var reader=new window.FileReader;const convertBlob=function(e){if(null!=e&&null!=e.href&&e.href.startsWith(\"blob\")){var r=e.href;fetch(r).then(e=>e.blob()).then(r=>{reader.readAsDataURL(r),reader.onload=function(r){var t=r.target.result;e.href=t,e.click()}})}};convertBlob(document.querySelector('.n-lightbox-download'));})()";
+
+    // widget based
+    private static final int widget_req_code = 2;
 
     // use the chosen theme
     private static final String PREF_THEME = "theme";
@@ -1099,7 +1102,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
 
             // if there is an active close button in sticky notes, click it
             if (closeButtonActive) {
-                // fix immersive mode back to normal
+                // fix immersive mode back to normal after the last image based close button is clicked
                 if (closeButtonSelector.equals(".n-lightbox-close")) {
                     getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
                 }
@@ -1125,6 +1128,13 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         }
 
         return true;
+    }
+    // show the widget option to user
+    private void pickNoteWidget() {
+        // TODO: get me working, needs to shortcut to creating widget
+        //Intent pickIntent = new Intent(AppWidgetManager.ACTION_APPWIDGET_PICK);
+        //pickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, ...);
+        //startActivityForResult(pickIntent, widget_req_code);
     }
     // shift through theme settings
     /* No longer using this in favor for the options menu buttons
@@ -1317,6 +1327,12 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             });
         }
 
+        // it will show the user the option to use the note widget from the app
+        @JavascriptInterface
+        public void promptPickNoteWidget() {
+            runOnUiThread(MainActivity.this::pickNoteWidget);
+        }
+
         // switch theme prompt when clicking on the button from the menu
         @JavascriptInterface
         public void promptSwitchTheme() {
@@ -1381,18 +1397,6 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         // can't be null anyways
         public String getAndroidString(String stringVariable) {
             return getResources().getString(STRING_INTEGERS.get(stringVariable));
-        }
-
-        // show other app installer prompt for update
-        @JavascriptInterface
-        public void showOtherInstallerUpdate(String versionName) {
-            //noinspection Convert2Lambda
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-
-                }
-            });
         }
     }
 }

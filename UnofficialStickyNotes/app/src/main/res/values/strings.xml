@@ -4,17 +4,17 @@
     <string name="popupInfo"><b>If you want Microsoft to create a true standalone version of Sticky Notes as a separate app, please head to the <a href="https://www.change.org/standalone-sticky-notes-microsoft">petition</a> I created to make Sticky Notes a standalone app, and sign it.</b>
         \n\nThis app is open-sourced, so if you know how to code and want to help, check out the <a href="https://github.com/TheAlienDrew/Unofficial-Sticky-Notes">Unofficial Sticky Notes GitHub</a> page.
         \n\n<b><u>News</u>:</b>
-        \n<li>An options menu is now available to change settings for the app such as the theme or tooltips.</li>
-        \n<li>You can finally use predictive text, auto-correct, and Glide/Swipe/Loops on Gboard, SwiftKey Keyboard, and other keyboards!</li>
+        \n<ul><li>An options menu is now available to change settings for the app such as the theme or tooltips.</li>
+        \n<li>You can finally use predictive text, auto-correct, and Glide/Swipe/Loops on Gboard, SwiftKey Keyboard, and other keyboards!</li></ul>
         \n\n<b><u>Features</u>:</b>
-        \n<li>Toggle between light, dark, and system themes via the options menu.</li>
+        \n<ul><li>Toggle between light, dark, and system themes via the options menu.</li>
         \n<li>Toggle on and off the ToolTips.</li>
         \n<li>You can upload/download images to/from your device.</li>
         \n<li>Works offline, but you must sign into it at least once, for the notes to show up on your device.</li>
         \n<li>Pull-to-refresh is enabled within the notes list.</li>
-        \n<li>Obviously, no ads whatsoever.</li>
+        \n<li>Obviously, no ads whatsoever.</li></ul>
         \n\n<b><u>Planned Features</u>:</b>
-        \n<li>Widgets for single notes (I won\'t be able to work on this until winter break, as I have college to focus on).</li>
+        \n<ul><li>Widgets for single notes (I won\'t be able to work on this until winter break, as I have college to focus on).</li></ul>
     </string>
     <string name="pressBackToExit">Please press BACK again to exit</string>
     <string name="helpNotCached">Sorry, but you must visit that part of the help page online first before it can load offline.</string>
@@ -52,6 +52,9 @@
     <string name="themeLight">Light</string>
     <string name="themeDark">Dark</string>
     <string name="themeSystem">System</string>
+    <!-- widget based -->
+    <string name="widget_timestamp_default">Timestamp</string>
+    <string name="widget_content_default">Content</string>
     <!-- TODO: old code for text bug prompt (string constants), might be useful to repurpose as a "rating me" popup -->
     <!--<string name="sendFeedback">Send Feedback</string>
     <string name="tempStringDark"><b><font color="#f44336">IMPORTANT!</font> If you can\'t type in any notes, then this is because of Microsoft introducing a new text bug that I can\'t fix. If you\'d like to have it fixed faster, please upvote the plea to get it fixed by clicking the corresponding button. If however it is working, please send me feedback about what keyboard you are using and what settings you\'ve applied.\n\nI\'ll remove this prompt after the bug is fixed.</b></string>

@@ -9,7 +9,7 @@
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);	
 }
 *:focus {
-	outline: none!important
+	outline: none!important;
 }
 
 /* Fixes weird scrolling that shouldn't happen
@@ -20,18 +20,29 @@
 html {
     position:fixed;
     height:100%;
-    width:100%
+    width:100%;
+}
+
+/* ONLY WIDGET STICKY NOTES */
+
+/* prevent clicking of any buttons at top */
+#topLevelRegion {
+    pointer-events: none;
+}
+/* hide other unimportant elements */
+#O365_HeaderLeftRegion, #centerRegion, #HeaderButtonRegion, #O365_HeaderRightRegion, .n-newNoteButtonContainer {
+    display: none;
 }
 
 /* ONLY STICKY NOTES */
 
-/* Bulleted list spacing fixes (makes it parity the desktop and OneNote app) */
+/* Bulleted list spacing fixes (makes it parity the desktop and OneNote app)
 [class^="n-Phone"] ul.public-DraftStyleDefault-ul, [class^="n-Tablet"] ul.public-DraftStyleDefault-ul {
   padding-left: 1em !important;
 }
 [class^="n-Desktop"] ul.public-DraftStyleDefault-ul {
   padding-left: 1.2em !important;
-}
+} */
 
 /* Disables the applications menu that offers other Microsoft products,
    not needed anymore since a working menu is in effect */

@@ -1,0 +1,35 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/appwidget_stroke"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/note_placeholder_layout"
+    android:padding="0dp"
+    android:theme="@style/Widget.AppCompat.TextView">
+
+    <TextView
+        android:id="@+id/appwidget_timestamp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="9dp"
+        android:paddingTop="3dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:paddingBottom="3dp"
+        android:gravity="end"
+        android:letterSpacing="0.05"
+        android:text="@string/widget_timestamp_default"
+        android:textColor="@color/colorGray"
+        android:textSize="12sp" />
+    <TextView
+        android:id="@+id/appwidget_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/appwidget_timestamp"
+        android:paddingTop="3dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:paddingBottom="15dp"
+        android:text="@string/widget_content_default"
+        android:textColor="@color/colorBlack"
+        android:textSize="14sp" />
+</RelativeLayout>

@@ -10,46 +10,61 @@
         </intent>
         <intent>
             <action android:name="android.intent.action.GET_CONTENT" />
+
             <data android:mimeType="image/*" />
         </intent>
         <intent>
             <action android:name="android.intent.action.VIEW" />
+
             <data android:scheme="market" />
         </intent>
-    </queries>
-
-    <!-- features this app may use -->
-    <uses-feature android:name="android.hardware.camera"
+    </queries> <!-- features this app may use -->
+    <uses-feature
+        android:name="android.hardware.camera"
         android:required="false" />
-    <uses-feature android:name="android.hardware.camera.autofocus"
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
         android:required="false" />
-    <uses-feature android:name="android.hardware.camera.flash"
-        android:required="false" />
-    <!-- needed for general webView functionality  -->
+    <uses-feature
+        android:name="android.hardware.camera.flash"
+        android:required="false" /> <!-- needed for general webView functionality -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <!-- read/write external storage is needed for saving/uploading camera-taken photos (Android Q and below) -->
-    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION"
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" /> <!-- read/write external storage is needed for saving/uploading camera-taken photos (Android Q and below) -->
+    <uses-permission
+        android:name="android.permission.ACCESS_MEDIA_LOCATION"
         android:minSdkVersion="29" /> <!-- Required for obtaining EXIF data for image rotations -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!-- mainly for API 30+ -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="29"
-        tools:ignore="ScopedStorage" />
-    <!-- allows app to be uploaded to the Samsung Galaxy App Store, but isn't actually using the Samsung Mobile SDK -->
-    <uses-permission android:name="com.samsung.android.providers.context.permission.WRITE_USE_APP_FEATURE_SURVEY"/>
+        tools:ignore="ScopedStorage" /> <!-- allows app to be uploaded to the Samsung Galaxy App Store, but isn't actually using the Samsung Mobile SDK -->
+    <uses-permission android:name="com.samsung.android.providers.context.permission.WRITE_USE_APP_FEATURE_SURVEY" />
 
-    <!-- requestLegacyExternalStorage is for API 29 only, allows app to use storage like API 28 and below -->
-    <!-- TODO: preserveLegacyExternalStorage is for API 30 only, allows app to see originally saved files if app was updated -->
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
         android:requestLegacyExternalStorage="true"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <receiver android:name=".NoteWidget">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/note_widget_info" />
+        </receiver>
+
+        <activity android:name=".NoteWidgetConfigureActivity">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
 
         <activity android:name=".MainActivity">
             <intent-filter>
@@ -104,7 +119,6 @@
 
             <tools:validation testUrl="https://www.onenote.com/stickynotes" />
         </activity>
-
     </application>
 
 </manifest>

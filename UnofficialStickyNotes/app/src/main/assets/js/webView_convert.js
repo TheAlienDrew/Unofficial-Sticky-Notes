@@ -19,7 +19,7 @@ javascript:(function() {
         const officeLinkSelector = appLauncherMainViewSelector + ' > a';
         const allAppsLinkSpacerSelector = appsModuleSelector + ' > div:nth-child(3)';
         const allAppsLinkSelector = '#allAppsLink';
-        const sidePaneSelector = '.n-side-pane-content';
+        const sidePaneContentSelector = '.n-side-pane-content';
         const flexPaneCloseButtonSelector = '#flexPaneCloseButton';
         const lightBoxCloseSelector = '.n-lightbox-close';
         const imageAltTextCancelSelector = '.n-imageAltTextCancel';
@@ -39,7 +39,7 @@ javascript:(function() {
         // theme changes based on url
         var currentURL = document.location.host + document.location.pathname;
         var themeCss = '*{-webkit-tap-highlight-color:transparent}:focus{outline:0!important}html{position:fixed;height:100%;width:100%}'; // see app_conversion.css
-        var fadeInCss = '.fade-in-AlienDrew{animation:fadeInAlienDrew ease .2s;-webkit-animation:fadeInAlienDrew ease .2s}@keyframes fadeInAlienDrew{0%{opacity:0}100%{opacity:1}}@-webkit-keyframes fadeInAlienDrew{0%{opacity:0}100%{opacity:1}}';
+        var fadeInCss = '.fade-in-Unofficial{animation:fadeInUnofficial ease .2s;-webkit-animation:fadeInUnofficial ease .2s}@keyframes fadeInUnofficial{0%{opacity:0}100%{opacity:1}}@-webkit-keyframes fadeInUnofficial{0%{opacity:0}100%{opacity:1}}';
         themeCss += fadeInCss;
 
         // function for elements
@@ -70,12 +70,12 @@ javascript:(function() {
 
             var checkLoading = setInterval(function() {
                 var mainLinkNavMenu = document.querySelector(mainLinkNavMenuSelector);
-                var sidePane = document.querySelector(sidePaneSelector);
+                var sidePaneContent = document.querySelector(sidePaneContentSelector);
 
-                // sidePane.lastElementChild.innerText is the best way to determine that notes are loaded
+                // sidePaneContent.lastElementChild.innerText is the best way to determine that notes are loaded
                 // trying to see if the loading animation appeared and disappeared won't always work (can be too fast)
                 // TODO: Might need to come back to fix this yet again if different locales change the loading notes text
-                if(elementExists(mainLinkNavMenu) && elementExists(sidePane) && sidePane.lastElementChild.innerText != 'Loading your notes...') {
+                if(elementExists(mainLinkNavMenu) && elementExists(sidePaneContent) && sidePaneContent.lastElementChild.innerText != 'Loading your notes...') {
                     clearInterval(checkLoading);
 
                     var helpPaneExists = false;
@@ -386,7 +386,7 @@ javascript:(function() {
                     theScrollTop = getScrollTop();
                     window.Android.setSwipeRefresher(theScrollTop, editingActive);
                     // set webView to visible after a small delay (so the loading gif on page disappears a bit more)
-                    document.body.classList.add('fade-in-AlienDrew'); // animate opacity as fade before showing page
+                    document.body.classList.add('fade-in-Unofficial'); // animate opacity as fade before showing page
                     setTimeout(function() {
                         window.Android.webViewSetVisible(true);
                     }, slowDelay);
