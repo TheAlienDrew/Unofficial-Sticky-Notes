@@ -20,7 +20,6 @@
         </intent>
     </queries>
     <!-- features this app may use -->
-    <!-- TODO: not needed until kinks with scoped storage are worked out
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
@@ -30,7 +29,6 @@
     <uses-feature
         android:name="android.hardware.camera.flash"
         android:required="false" />
-    -->
     <!-- needed for general webView functionality -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
