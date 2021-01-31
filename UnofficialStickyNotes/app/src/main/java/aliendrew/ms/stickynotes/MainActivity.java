@@ -1,7 +1,7 @@
 package aliendrew.ms.stickynotes;
 
-/* This Android app aims to make the Microsoft Sticky Notes website work with any Android 5.0+ device.
- * Copyright (C) 2020  Andrew Larson (thealiendrew@gmail.com)
+// This Android app aims to make the Microsoft Sticky Notes website work with any Android 5.0+ device.
+/* Copyright (C) 2020  Andrew Larson (thealiendrew@gmail.com)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,6 +53,7 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.drawable.ColorDrawable;
 
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.exifinterface.media.ExifInterface;
 
 import android.media.MediaScannerConnection;
@@ -123,7 +124,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
-public class MainActivity extends ImmersiveAppCompatActivity {
+public class MainActivity extends KeyboardCheckerAppCompatActivity {
     // constants
     private static final String STICKY_NOTES_URL = "https://www.onenote.com/stickynotes";
     private static final String APP_VERSION = BuildConfig.VERSION_NAME;
@@ -603,27 +604,30 @@ public class MainActivity extends ImmersiveAppCompatActivity {
             splashImage.requestFocus();
 
             view.setVisibility(View.INVISIBLE);
-            if (!keepNavBar) setToImmersiveMode(true);
         }
         @Override
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
 
-            // Don't load themes/don't allow swipe on the help page, as it's already themed/doesn't need reload
+            // Websites have their special needs when it comes to theming or added functionality
+            // NOTE: visibility is handled by respective convert_*.js files
             if (url.startsWith(STICKY_HELP_URL_START)) {
                 // fix scaling and themes (Microsoft didn't prepare a dark mode)
-                injectScriptFile(view, "js/help_fixes.js");
-            } else {
-                // light theme is the Microsoft default
-                if (useDarkTheme) injectScriptFile(view, "js/dark_theme.js");
-
+                swipeRefresher.setEnabled(false);
+                swipeRefresher.setRefreshing(false);
+                injectScriptFile(view, "js/convert_helpPage.js");
+            } else if (url.startsWith(STICKY_NOTES_URL)) {
                 // disable tooltips if setting is active
                 if (disableToolTips) injectScriptFile(view, "js/disable_tooltips.js");
-
-                // make the website compatible with Android webView
-                injectScriptFile(view, "js/webView_convert.js");
+                // make the main sticky notes website compatible with Android webView
+                injectScriptFile(view, "js/convert_stickyNotesMain.js");
+                // swipe is handled in the convert_stickyNotesMain.js
+            } else {
+                // make logins and other pages compatible with Android webView
+                swipeRefresher.setEnabled(false);
+                swipeRefresher.setRefreshing(false);
+                injectScriptFile(view, "js/convert_loginsOther.js");
             }
-            // visibility + swipe is handled in webView_convert.js for Sticky Notes, help, and login
 
             disableReloading = false;
         }
@@ -663,21 +667,15 @@ public class MainActivity extends ImmersiveAppCompatActivity {
         }
 
         if (url != null) {
-            keepNavBar = url.startsWith(STICKY_HELP_URL_START);
-
-            // setToImmersive is now managed via mainly the web pages / webView's onPageStarted
-
             if (url.length() > 0) {
                 view.loadUrl(url);
             }
         } else {
             if (view.getUrl().startsWith(STICKY_HELP_URL_START)) {
-                keepNavBar = true;
                 if (useDarkTheme) url = DARK_STICKY_HELP_URL;
                 else url = LIGHT_STICKY_HELP_URL;
                 view.loadUrl(url);
             } else {
-                keepNavBar = false;
                 view.reload();
             }
         }
@@ -710,7 +708,8 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 "options", R.string.options,
                 "switchTheme", R.string.switchTheme,
                 "toggleToolTips", R.string.toggleToolTips,
-                "helpNotCached", R.string.helpNotCached
+                "helpNotCached", R.string.helpNotCached,
+                "loginNotCached", R.string.loginNotCached
         );
 
         // need splash image to focus on it after webView reloads so keyboard doesn't auto popup
@@ -730,7 +729,6 @@ public class MainActivity extends ImmersiveAppCompatActivity {
 
         // initialize primary webView
         webStickies = findViewById(R.id.webView);
-        theWebView = webStickies; // NEEDED FOR ImmersiveAppCompatActivity!
         final WebSettings webSettings = webStickies.getSettings();
         //WebView.setWebContentsDebuggingEnabled(true); // TODO: turn off before official builds
 
@@ -1317,7 +1315,7 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                 @Override
                 public void run() {
                     // enable if phone edit is inactive and less than or equal to minimum scrollTop, otherwise, disable
-                    if (!keyboardVisible() && (scrollTop <= 0) && !editActive) {
+                    if (!keyboardVisible() && !editActive && (scrollTop <= 0)) {
                         swipeRefresher.setEnabled(true);
                     } else {
                         swipeRefresher.setEnabled(false);
@@ -1376,18 +1374,6 @@ public class MainActivity extends ImmersiveAppCompatActivity {
                     webStickies.setVisibility(View.INVISIBLE);
                     String helpURL = useDarkTheme ? DARK_STICKY_HELP_URL : LIGHT_STICKY_HELP_URL;
                     internetCacheLoad(webStickies, helpURL);
-                }
-            });
-        }
-
-        // setToImmersive from the web
-        @JavascriptInterface
-        public void setToImmersive(boolean choice) {
-            //noinspection Convert2Lambda
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    setToImmersiveMode(choice);
                 }
             });
         }

@@ -4,8 +4,8 @@
     android:initialKeyguardLayout="@layout/note_widget"
     android:initialLayout="@layout/note_widget"
     android:minWidth="110dp"
-    android:minHeight="110dp"
+    android:minHeight="55dp"
     android:previewImage="@drawable/note_appwidget_preview"
     android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="3600000"
-    android:widgetCategory="home_screen"></appwidget-provider>
+    android:widgetCategory="home_screen" />

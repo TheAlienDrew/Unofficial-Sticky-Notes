@@ -1,13 +1,27 @@
 javascript:(function() {
+        /* Copyright (C) 2020  Andrew Larson (thealiendrew@gmail.com)
+         *
+         * This program is free software: you can redistribute it and/or modify
+         * it under the terms of the GNU General Public License as published by
+         * the Free Software Foundation, either version 3 of the License, or
+         * (at your option) any later version.
+         *
+         * This program is distributed in the hope that it will be useful,
+         * but WITHOUT ANY WARRANTY; without even the implied warranty of
+         * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+         * GNU General Public License for more details.
+         *
+         * You should have received a copy of the GNU General Public License
+         * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+         */
+        console.log("convert_stickyNotesPicker.js started");
 
         // constants
-        const stickyNotesURL = 'www.onenote.com/stickynotes'
-        const signUpURL = 'https://signup.live.com/';
-        const loginAuthURL = 'login.microsoftonline.com/common/oauth2/authorize';
         const neverCached = 'chromewebdata'
         const slowDelay = 1000;
         const fastDelay = 100;
         // constant selectors
+        const notesLoadingSelector = '.n-loadingAnimationContainer';
         const mainLinkNavMenuSelector = '#O365_MainLink_NavMenu';
         const appNameSpanSelector = '#O365_AppName > span';
         const sidePaneContentSelector = '.n-side-pane-content';
@@ -17,14 +31,20 @@ javascript:(function() {
         // constant classes
         const msListCellClass = 'ms-List-cell';
         const noteIdAttribute = 'data-flip-id';
+        // notes dark mode constants
+        const darkModeClassName = 'n-darkMode';
+        const uiContainerSelector = '#n-ui-container';
+        // loading gif constants
+        const loadingGifDark = 'https://npwuscdn-onenote.azureedge.net/ondcnotesintegration/img/loading-dark.gif';
+        const loadingGifSelector = '#n-side-pane > div.n-side-pane-content > div > div > div > img';
         // constant database info
         const DATABASE = 'notes.sdk';
         const STORE = 'notes';
-        // theme changes based on url
-        var currentURL = document.location.host + document.location.pathname;
-        var themeCss = '*{-webkit-tap-highlight-color:transparent}:focus{outline:0!important}html{position:fixed;height:100%;width:100%}#topLevelRegion{pointer-events:none}#HeaderButtonRegion,#O365_HeaderLeftRegion,#O365_HeaderRightRegion,#centerRegion,.n-newNoteButtonContainer{display:none}'; // see app_conversion.css
-        var fadeInCss = '.fade-in-Unofficial{animation:fadeInUnofficial ease .2s;-webkit-animation:fadeInUnofficial ease .2s}@keyframes fadeInUnofficial{0%{opacity:0}100%{opacity:1}}@-webkit-keyframes fadeInUnofficial{0%{opacity:0}100%{opacity:1}}';
-        themeCss += fadeInCss;
+        // theme constants
+        const themeBaseCss = '*{-webkit-tap-highlight-color:transparent}:focus{outline:0!important}html{position:fixed;height:100%;width:100%}'; // see app_conversion.css
+        const fadeInCss = '.fade-in-Unofficial{animation:fadeInUnofficial ease .2s;-webkit-animation:fadeInUnofficial ease .2s}@keyframes fadeInUnofficial{0%{opacity:0}100%{opacity:1}}@-webkit-keyframes fadeInUnofficial{0%{opacity:0}100%{opacity:1}}';
+        const darkModeCss = 'html{background:#202020}.n-loaderTitle{filter:invert(100%)}.n-loader{border-color:#7719aa #262626 #262626}.n-loadingAnimationContainer{background:#202020;border-color:rgba(32,32,32,.1)}.n-imageAltInputWrapper textarea,.n-imageAltWrapper,.n-lightboxOverflow-container{background-color:var(--n-overflow-menu-background)}.n-imageAltInputWrapper textarea,.n-imageAltTextCancel,.n-imageAltWrapper,.n-lightboxOverflow-container button{color:#fff}.n-imageAltWrapper{border-color:#fff}.n-imageAltInputWrapper textarea::placeholder{color:#959493}.n-imageAltTextCancel{border:1px solid #fff!important;padding:0;background-color:transparent}.n-imageAltButtonWrapper button:hover{background-color:#fff;color:#000;opacity:1!important}#O365_MainLink_NavMenu:focus,.o365cs-base .o365sx-activeButton,.o365cs-base .o365sx-activeButton:focus,.o365cs-base .o365sx-activeButton:hover{background-color:#202020!important;color:#fff!important}.ms-Dialog-button--close:hover,.o365cs-base .o365sx-neutral-lighterAlt-background,.o365sx-neutral-lighter-hover-background:hover{background:#333!important}#appLauncherTop .o365sx-neutral-dark-font,#appsModule h2.o365sx-neutral-dark-font,#flexPaneScrollRegion .o365sx-neutral-dark-font,.ms-Dialog{color:#fff}#allView .o365sx-neutral-dark-font,#appsModule div.o365sx-neutral-dark-font{filter:hue-rotate(180deg) invert(100%)}#FlexPane_MeControl .o365sx-neutral-foreground-background,#appLauncher,.o365cs-base .o365sx-neutral-foreground-background{background:#494949!important}#flexPaneCloseButton,.ms-Icon--BingLogo,.ms-Icon--MSNLogo,.ms-Icon--People,.ms-Icon--PrivacyLogo,.ms-Icon--RewardsLogo,i[data-icon-name=Cancel]{filter:hue-rotate(180deg) invert(100%)}#O365fpcontainerid{border-color:#000}#FlexPane_MeControl a,#appLauncherMainView a,#appsModule button.o365sx-neutral-accent-font,#flexPaneScrollRegion a,button#allViewBackButton.o365sx-neutral-accent-font{color:#93cff7}.ms-Dialog>:not(.ms-Overlay--dark) .ms-Overlay{background-color:rgba(0,0,0,.4)}.ms-Dialog>.ms-Overlay--dark{background-color:rgba(255,255,255,.4)}.ms-Dialog-title{color:#ccc}.ms-Dialog-content [class^=innerContent-]{color:#fff}:not(.n-lightboxModal)>.ms-Dialog-main{background:#494949}';
+        const widgetPickCss = '#topLevelRegion{pointer-events:none}#HeaderButtonRegion,#O365_HeaderLeftRegion,#O365_HeaderRightRegion,#centerRegion,.n-newNoteButtonContainer{display:none}'; // see app_conversion.css
 
         // function for elements
         var elementExists = function(element) {
@@ -250,7 +270,7 @@ javascript:(function() {
                     }
                     note.modifiedAt = noteData.documentModifiedAt;
                     note.id = noteData.id;
-                    //note.remoteId = noteDate.remoteId;
+                    //note.remoteId = noteDate.remoteId; // required to get media online
                     //note.media = ...;
 
                     // if I ever need media (images), I can just use the following
@@ -317,108 +337,112 @@ javascript:(function() {
             };
         };
 
-        // wait for loading animation to appear then disappear before making webView visible (if on sticky notes page)
+        // variables
+        var isDarkMode = window.Android.isDarkMode();
+        var themeCss = themeBaseCss + widgetPickCss + fadeInCss;
+        // add onto the theme in case of dark mode
+        if (isDarkMode) themeCss += darkModeCss;
+
+        // wait for loading animation to appear then disappear before making webView visible
+        //   (if on sticky notes page)
         var editingActive = 0;
         var theScrollTop = 0;
         var noteListContainer = null;
         var noteListCell = null;
-        if (currentURL == stickyNotesURL) {
-            // hide the page to force it into phone UI
-            document.body.style.display = 'none';
-            
-            var checkLoading = setInterval(function() {
-                var mainLinkNavMenu = document.querySelector(mainLinkNavMenuSelector);
-                var sidePaneContent = document.querySelector(sidePaneContentSelector);
+        document.body.style.display = 'none'; // hide the page to force it into phone UI
+        var checkLoading = setInterval(function() {
+            var mainLinkNavMenu = document.querySelector(mainLinkNavMenuSelector);
+            var sidePaneContent = document.querySelector(sidePaneContentSelector);
+            var appNameSpan = document.querySelector(appNameSpanSelector);
 
-                // sidePaneContent.lastElementChild.innerText is the best way to determine that notes are loaded
-                // trying to see if the loading animation appeared and disappeared won't always work (can be too fast)
-                // TODO: Might need to come back to fix this yet again if different locales change the loading notes text
-                if(elementExists(mainLinkNavMenu) && elementExists(sidePaneContent) && sidePaneContent.lastElementChild.innerText != 'Loading your notes...') {
-                    clearInterval(checkLoading);
+            // sidePaneContent.lastElementChild.innerText != "Loading your notes..." was a good way
+            //   to test, but not when locales change
+            // trying to see if the loading animation appeared and disappeared won't always work
+            //   (can be too fast)
+            // so, just need to test if the side pane has at least loaded, and then query select for
+            //  the loading element
+            if(elementExists(mainLinkNavMenu)
+               && elementExists(sidePaneContent)
+               && !elementExists(sidePaneContent.querySelector(notesLoadingSelector))
+               && elementExists(appNameSpan) ) {
+                clearInterval(checkLoading);
 
-                    // show the page after loaded (after hidden to force Phone mode)
-                    document.body.style.display = '';
-                    // change link text for app name to simple instructions
-                    let appNameSpan = document.querySelector(appNameSpanSelector);
-                    appNameSpan.innerText = appNameSpan.innerText + ' > Select note for widget';
+                // show the page after loaded (after hidden to force Phone mode)
+                document.body.style.display = '';
+                // change link text for app name to simple instructions
+                appNameSpan.innerText = appNameSpan.innerText + ' > Select note for widget';
 
-                    let listLoaded = false;
-                    // need to watch for everytime the list gets loaded in to assign onclick function
-                    setInterval(function() {
-                        let msListPage = document.querySelector(msListPageSelector);
-                        if (msListPage && !listLoaded) {
-                            listLoaded = true;
-                            // assign onclick function to existing notes
-                            for (let i = 0; i < msListPage.childElementCount; i++) {
-                                let child = msListPage.children[i];
-                                setNoteWidgetFunction(child);
-                            }
+                let listLoaded = false;
+                // need to watch for everytime the list gets loaded in to assign onclick function
+                setInterval(function() {
+                    let msListPage = document.querySelector(msListPageSelector);
+                    if (msListPage && !listLoaded) {
+                        listLoaded = true;
+                        // assign onclick function to existing notes
+                        for (let i = 0; i < msListPage.childElementCount; i++) {
+                            let child = msListPage.children[i];
+                            setNoteWidgetFunction(child);
+                        }
 
-                            // listen to when new notes get created
-                            let obs = new MutationObserver(function(mutations, observer) {
-                                // look through all mutations that just occured
-                                for(var i=0; i < mutations.length; ++i) {
-                                    // look through all added nodes of this mutation
-                                    for(var j=0; j < mutations[i].addedNodes.length; ++j) {
-                                        // check current added node
-                                        let node = mutations[i].addedNodes[j];
-                                        if(node.classList.contains(msListCellClass)) {
-                                            setNoteWidgetFunction(node);
-                                        }
+                        // listen to when new notes get created
+                        let obs = new MutationObserver(function(mutations, observer) {
+                            // look through all mutations that just occured
+                            for(var i=0; i < mutations.length; ++i) {
+                                // look through all added nodes of this mutation
+                                for(var j=0; j < mutations[i].addedNodes.length; ++j) {
+                                    // check current added node
+                                    let node = mutations[i].addedNodes[j];
+                                    if(node.classList.contains(msListCellClass)) {
+                                        setNoteWidgetFunction(node);
                                     }
                                 }
-                            });
-                            obs.observe(msListPage, { childList: true });
-                        } else if (!msListPage) listLoaded = false;
-                    }, fastDelay);
+                            }
+                        });
+                        obs.observe(msListPage, { childList: true });
+                    } else if (!msListPage) listLoaded = false;
+                }, fastDelay);
 
-                    // if page was loaded while hidden, note will show, which needs to be closed out
-                    let noteClose = setInterval(function() {
-                        let noteCloseButton = document.querySelector(noteCloseButtonSelector);
-                        if (noteCloseButton) {
-                            clearInterval(noteClose);
-                            noteCloseButton.click();
-                        }
-                    }, fastDelay);
-
-                    // set webView to visible after a small delay (so the loading gif on page disappears a bit more)
-                    document.body.classList.add('fade-in-Unofficial'); // animate opacity as fade before showing page
-                    setTimeout(function() {
-                        window.Android.webViewSetVisible(true);
-                    }, slowDelay);
-                }
-            }, fastDelay);
-        } else {
-            var checkLoading = setInterval(function() {
-                if (typeof(document.activeElement) != 'undefined' && document.activeElement != null) {
-                    clearInterval(checkLoading);
-
-                    // the create account link is broken, and needs to be changed
-                    if (currentURL == loginAuthURL) {
-                        var signUpSelector = 'signup';
-                        var signUp = document.getElementById(signUpSelector);
-
-                        var newSignUp = signUp.cloneNode(true);
-                        newSignUp.href = signUpURL;
-
-                        signUp.remove();
-                        document.getElementsByClassName('form-group')[1].appendChild(newSignUp);
+                // if page was loaded while hidden, note will show, which needs to be closed out
+                let noteClose = setInterval(function() {
+                    let noteCloseButton = document.querySelector(noteCloseButtonSelector);
+                    if (noteCloseButton) {
+                        clearInterval(noteClose);
+                        noteCloseButton.click();
                     }
+                }, fastDelay);
 
-                    // let login pages not fade in (just appear)
-                    if (document.location.host != neverCached) {
-                        window.Android.webViewSetVisible(true);
-                    }
-                }
-            }, fastDelay);
-        }
+                // set webView to visible after a small delay (so the loading gif on page disappears a bit more)
+                document.body.classList.add('fade-in-Unofficial'); // animate opacity as fade before showing page
+                setTimeout(function() {
+                    window.Android.webViewSetVisible(true);
+                }, slowDelay);
+            }
+        }, fastDelay);
 
         // continue with website related fixes
         var node = document.createElement('style');
-
         node.type = 'text/css';
         node.innerHTML = themeCss;
-
         document.head.appendChild(node);
+
+        // additional fixes for the sticky notes page
+        if (isDarkMode) {
+            // this enables Microsoft's dark mode (normally turned on from outlook.com)
+            document.body.classList.add(darkModeClassName);
+            // fix issues with loading gif being light
+            var loadingGif = null;
+            var fixLoadingGif = setInterval(function() {
+                loadingGif = document.querySelector(loadingGifSelector);
+                if (elementExists(loadingGif)) {
+                    clearInterval(fixLoadingGif);
+                    loadingGif.src = loadingGifDark;
+                }
+            }, 10);
+            // fix issues with Phone note view not being darkened like it should
+            setInterval(function() {
+                var uiContainer = document.querySelector(uiContainerSelector);
+                if (elementExists(uiContainer) && !uiContainer.classList.contains(darkModeClassName)) uiContainer.classList.add(darkModeClassName);
+            }, fastDelay);
+        }
 
     })()

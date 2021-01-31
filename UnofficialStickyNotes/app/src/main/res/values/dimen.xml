@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="widget_no_space">0dp</dimen>
+    <dimen name="widget_inner_padding">0.25dp</dimen>
+    <dimen name="widget_outer_thin_padding">6dp</dimen>
+    <dimen name="widget_outer_thick_padding">9dp</dimen>
+    <dimen name="widget_note_stroke_height">8dp</dimen>
+    <dimen name="widget_note_corner_radius">4dp</dimen>
+    <dimen name="widget_note_timestamp">10sp</dimen>
+    <dimen name="widget_note_content">16sp</dimen>
+</resources>

@@ -1,5 +1,21 @@
 package aliendrew.ms.stickynotes;
 
+/* Copyright (C) 2020  Andrew Larson (thealiendrew@gmail.com)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
@@ -11,7 +27,6 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.BulletSpan;
 import android.text.style.LeadingMarginSpan;
-import android.util.TypedValue;
 import android.widget.RemoteViews;
 
 import androidx.core.content.ContextCompat;
@@ -29,20 +44,12 @@ import java.util.Map;
  */
 public class NoteWidget extends AppWidgetProvider {
 
-    // note themes (variable map)
-    private static Map<String, Integer> LIGHT_THEME_INTEGERS;
-    private static Map<String, Integer> DARK_THEME_INTEGERS;
-
-    // get DiP from pixels
-    public static int dip(int dp) {
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (float) dp, Resources.getSystem().getDisplayMetrics());
-    }
-
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
-        // set themes to integers maps
-        LIGHT_THEME_INTEGERS = Maps.newHashMap();
-        DARK_THEME_INTEGERS = Maps.newHashMap();
+        // note themes (variable map)
+        Map<String, Integer> LIGHT_THEME_INTEGERS = Maps.newHashMap();
+        Map<String, Integer> DARK_THEME_INTEGERS = Maps.newHashMap();
+        Map<String, Integer> DARK_TIMESTAMP_INTEGERS = Maps.newHashMap();
         LIGHT_THEME_INTEGERS.put("Yellow", R.drawable.note_yellow_light_layout);
         LIGHT_THEME_INTEGERS.put("Green", R.drawable.note_green_light_layout);
         LIGHT_THEME_INTEGERS.put("Pink", R.drawable.note_pink_light_layout);
@@ -57,10 +64,17 @@ public class NoteWidget extends AppWidgetProvider {
         DARK_THEME_INTEGERS.put("Blue", R.drawable.note_blue_dark_layout);
         DARK_THEME_INTEGERS.put("Gray", R.drawable.note_gray_dark_layout);
         DARK_THEME_INTEGERS.put("Charcoal", R.drawable.note_charcoal_dark_layout);
+        DARK_TIMESTAMP_INTEGERS.put("Yellow", R.color.yellowDarkStroke);
+        DARK_TIMESTAMP_INTEGERS.put("Green", R.color.greenDarkStroke);
+        DARK_TIMESTAMP_INTEGERS.put("Pink", R.color.pinkDarkStroke);
+        DARK_TIMESTAMP_INTEGERS.put("Purple", R.color.purpleDarkStroke);
+        DARK_TIMESTAMP_INTEGERS.put("Blue", R.color.blueDarkStroke);
+        DARK_TIMESTAMP_INTEGERS.put("Gray", R.color.grayDarkStroke);
+        DARK_TIMESTAMP_INTEGERS.put("Charcoal", R.color.darkNoteTimestamp);
 
         String noteDataJSON = NoteWidgetConfigureActivity.loadNotePref(context, appWidgetId);
         JSONObject noteData;
-        //String noteId;
+        String noteId;
         String noteColor;
         String noteTimestamp;
         String noteContent;
@@ -70,7 +84,7 @@ public class NoteWidget extends AppWidgetProvider {
         int noteContentLinkColor;
         try {
             noteData = new JSONObject(noteDataJSON);
-            //noteId = noteData.getString("id");
+            noteId = noteData.getString("id");
             noteColor = noteData.getString("color");
             noteTimestamp = noteData.getString("timestamp");
             noteContent = noteData.getString("content");
@@ -80,26 +94,26 @@ public class NoteWidget extends AppWidgetProvider {
                     == Configuration.UI_MODE_NIGHT_YES) {
                 // system is dark
                 noteLayoutColor = DARK_THEME_INTEGERS.get(noteColor);
-                noteTimestampColor = R.color.darkTimestampText;
-                noteContentTextColor = R.color.darkContentText;
-                noteContentLinkColor = R.color.darkContentLink;
+                noteTimestampColor = DARK_TIMESTAMP_INTEGERS.get(noteColor);
+                noteContentTextColor = R.color.darkNoteContentText;
+                noteContentLinkColor = R.color.darkNoteContentLink;
             } else { // system is light
                 // Charcoal has special circumstance theme settings
                 boolean isCharcoal = noteColor.equals("Charcoal");
 
                 noteLayoutColor = LIGHT_THEME_INTEGERS.get(noteColor);
-                noteTimestampColor = isCharcoal ? R.color.charcoalLightTimestampText : R.color.lightTimestamp;
-                noteContentTextColor = isCharcoal ? R.color.charcoalLightContentText : R.color.lightContentText;
-                noteContentLinkColor = isCharcoal ? R.color.charcoalLightContentLink : R.color.lightContentLink;
+                noteTimestampColor = isCharcoal ? R.color.darkNoteTimestamp : R.color.lightNoteTimestamp;
+                noteContentTextColor = isCharcoal ? R.color.charcoalLightContentText : R.color.lightNoteContentText;
+                noteContentLinkColor = isCharcoal ? R.color.charcoalLightContentLink : R.color.lightNoteContentLink;
             }
         } catch (JSONException e) {
             noteData = null;
-            //noteId = null;
+            noteId = null;
             noteColor = "invalid";
             noteTimestamp = "ERROR";
             noteContent = "<p><b>Contents of note couldn't load!</b></p>";
             noteLayoutColor = R.drawable.note_invalid_layout;
-            noteTimestampColor = R.color.invalidTimestampText;
+            noteTimestampColor = R.color.lightNoteTimestamp;
             noteContentTextColor = R.color.invalidContentText;
             noteContentLinkColor = R.color.invalidContentLink;
         }
@@ -161,7 +175,7 @@ public class NoteWidget extends AppWidgetProvider {
     public void onDeleted(Context context, int[] appWidgetIds) {
         // When the user deletes the widget, delete the preference associated with it.
         for (int appWidgetId : appWidgetIds) {
-            NoteWidgetConfigureActivity.deleteTitlePref(context, appWidgetId);
+            NoteWidgetConfigureActivity.deleteNotePref(context, appWidgetId);
         }
     }
 

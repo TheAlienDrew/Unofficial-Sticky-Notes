@@ -17,6 +17,7 @@
         \n<ul><li>Widgets for single notes (I won\'t be able to work on this until winter break, as I have college to focus on).</li></ul>
     </string>
     <string name="pressBackToExit">Please press BACK again to exit</string>
+    <string name="loginNotCached">Sorry, but you need to be online at least once to login and start using this app.</string>
     <string name="helpNotCached">Sorry, but you must visit that part of the help page online first before it can load offline.</string>
     <string name="errorNotCached">Error, data not cached</string>
     <string name="checkInternet">Check your internet connection and try again.</string>

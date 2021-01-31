@@ -18,7 +18,9 @@
 
             <data android:scheme="market" />
         </intent>
-    </queries> <!-- features this app may use -->
+    </queries>
+    <!-- features this app may use -->
+    <!-- TODO: not needed until kinks with scoped storage are worked out
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
@@ -27,19 +29,24 @@
         android:required="false" />
     <uses-feature
         android:name="android.hardware.camera.flash"
-        android:required="false" /> <!-- needed for general webView functionality -->
+        android:required="false" />
+    -->
+    <!-- needed for general webView functionality -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" /> <!-- read/write external storage is needed for saving/uploading camera-taken photos (Android Q and below) -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!-- read/write external storage is needed for saving/uploading camera-taken photos (Android Q and below) -->
     <uses-permission
         android:name="android.permission.ACCESS_MEDIA_LOCATION"
-        android:minSdkVersion="29" /> <!-- Required for obtaining EXIF data for image rotations -->
+        android:minSdkVersion="29" />
+    <!-- Required for obtaining EXIF data for image rotations -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!-- mainly for API 30+ -->
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="29"
-        tools:ignore="ScopedStorage" /> <!-- allows app to be uploaded to the Samsung Galaxy App Store, but isn't actually using the Samsung Mobile SDK -->
+        tools:ignore="ScopedStorage" />
+    <!-- allows app to be uploaded to the Samsung Galaxy App Store, but isn't actually using the Samsung Mobile SDK -->
     <uses-permission android:name="com.samsung.android.providers.context.permission.WRITE_USE_APP_FEATURE_SURVEY" />
 
     <application
@@ -50,7 +57,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <receiver android:name=".NoteWidget">
+        <receiver android:name=".NoteWidget" android:label="Single Note">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -80,7 +87,7 @@
 
                 <data
                     android:host="www.onenote.com"
-                    android:pathPattern="/stickynotes"
+                    android:pathPrefix="/stickynotes"
                     android:scheme="https" />
             </intent-filter>
             <intent-filter>
@@ -91,7 +98,7 @@
 
                 <data
                     android:host="www.onenote.com"
-                    android:pathPattern="/stickynotes"
+                    android:pathPrefix="/stickynotes"
                     android:scheme="http" />
             </intent-filter>
             <intent-filter>
@@ -102,7 +109,7 @@
 
                 <data
                     android:host="onenote.com"
-                    android:pathPattern="/stickynotes"
+                    android:pathPrefix="/stickynotes"
                     android:scheme="https" />
             </intent-filter>
             <intent-filter>
@@ -113,7 +120,7 @@
 
                 <data
                     android:host="onenote.com"
-                    android:pathPattern="/stickynotes"
+                    android:pathPrefix="/stickynotes"
                     android:scheme="http" />
             </intent-filter>
 

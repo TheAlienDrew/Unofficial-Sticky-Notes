@@ -1,5 +1,21 @@
 package aliendrew.ms.stickynotes;
 
+/* Copyright (C) 2020  Andrew Larson (thealiendrew@gmail.com)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -33,6 +49,8 @@ import android.widget.ImageView;
 
 import androidx.core.content.ContextCompat;
 
+import com.google.common.collect.ImmutableMap;
+
 import java.io.IOException;
 import java.io.InputStream;
 //import java.util.Locale;
@@ -51,11 +69,13 @@ public class NoteWidgetConfigureActivity extends Activity {
     private final String USER_COUNTRY = USER_LOCALE.getCountry();*/
 
     // general app controls
+    private static final String PREFS_NAME = "prefs";
     private ImageView splashImage;
     private boolean appLaunched = true;
     private boolean cacheErrorSent = false;
 
-    // use the system theme
+    // use the chosen theme
+    private static final String PREF_THEME = "theme";
     private boolean useDarkTheme = false;
 
     // webView variables
@@ -63,9 +83,12 @@ public class NoteWidgetConfigureActivity extends Activity {
     private WebView webLoadingLight;
     private WebView webStickies;
 
+    // javascript interface (variable map)
+    private static ImmutableMap<String, Integer> STRING_INTEGERS;
+
     // widget preference constants
-    private static final String PREFS_NAME = "aliendrew.ms.stickynotes.NoteWidget";
-    private static final String PREF_PREFIX_KEY = "appwidget_";
+    private static final String PREFS_WIDGET_NAME = "aliendrew.ms.stickynotes.NoteWidget";
+    private static final String PREF_WIDGET_PREFIX_KEY = "notewidget_";
     // widget variables
     int mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
 
@@ -240,17 +263,17 @@ public class NoteWidgetConfigureActivity extends Activity {
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
 
-            // light theme is the Microsoft default
-            if (useDarkTheme) injectScriptFile(view, "js/dark_theme.js");
-
-            // disable tooltips if setting is active
-            injectScriptFile(view, "js/disable_tooltips.js");
-
-            // make the website compatible with Android webView
-            injectScriptFile(view, "js/linkify.min.js"); // needed for creating links in widget
-            injectScriptFile(view, "js/notePicker_webView_convert.js");
-
-            // visibility + swipe is handled in notePicker_webView_convert.js for Sticky Notes and login
+            // Websites have their special needs when it comes to theming or added functionality
+            // NOTE: visibility is handled by respective convert_*.js files
+            if (url.startsWith(STICKY_NOTES_URL)) {
+                // make the main sticky notes page act like a picker for the widget
+                injectScriptFile(view, "js/disable_tooltips.js");
+                injectScriptFile(view, "js/linkify.min.js"); // needed for creating links in widget
+                injectScriptFile(view, "js/convert_stickyNotesPicker.js");
+            } else {
+                // make logins and other pages compatible with Android webView
+                injectScriptFile(view, "js/convert_loginsOther.js");
+            }
         }
 
         private void injectScriptFile(WebView view, String scriptFile) {
@@ -304,16 +327,16 @@ public class NoteWidgetConfigureActivity extends Activity {
 
     // Write the prefix to the SharedPreferences object for this widget // TODO: reprogram this pref save
     static void saveNotePref(Context context, int appWidgetId, String dataJSON) {
-        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
-        prefs.putString(PREF_PREFIX_KEY + appWidgetId, dataJSON);
+        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_WIDGET_NAME, 0).edit();
+        prefs.putString(PREF_WIDGET_PREFIX_KEY + appWidgetId, dataJSON);
         prefs.apply();
     }
 
     // Read the prefix from the SharedPreferences object for this widget. // TODO: reprogram this pref load
     // If there is no preference saved, cancel widget
     static String loadNotePref(Context context, int appWidgetId) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
-        String dataJSON = prefs.getString(PREF_PREFIX_KEY + appWidgetId, null);
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_WIDGET_NAME, 0);
+        String dataJSON = prefs.getString(PREF_WIDGET_PREFIX_KEY + appWidgetId, null);
         if (dataJSON != null) {
             return dataJSON;
         } else { // TODO: MAKE THIS CANCEL THE WIDGET
@@ -321,9 +344,9 @@ public class NoteWidgetConfigureActivity extends Activity {
         }
     }
 
-    static void deleteTitlePref(Context context, int appWidgetId) { // TODO: reprogram this pref delete
-        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
-        prefs.remove(PREF_PREFIX_KEY + appWidgetId);
+    static void deleteNotePref(Context context, int appWidgetId) { // TODO: reprogram this pref delete
+        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_WIDGET_NAME, 0).edit();
+        prefs.remove(PREF_WIDGET_PREFIX_KEY + appWidgetId);
         prefs.apply();
     }
 
@@ -350,11 +373,21 @@ public class NoteWidgetConfigureActivity extends Activity {
             return;
         }
 
-        // TODO: KIND OF AN EXAMPLE OF LOADING WIDGET PREFERENCES
-        //mAppWidgetText.setText(loadTitlePref(NoteWidgetConfigureActivity.this, mAppWidgetId));
-
-        // get system used theme (to set note widget theme)
-        useDarkTheme = isSystemDark();
+        // get preferences
+        SharedPreferences preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        String prefTheme = preferences.getString(PREF_THEME, "system");
+        switch (prefTheme) {
+            case "dark":
+                useDarkTheme = true;
+                break;
+            case "system":
+                useDarkTheme = isSystemDark();
+                break;
+        }
+        // set string to integers map
+        STRING_INTEGERS = ImmutableMap.of(
+                "loginNotCached", R.string.loginNotCached
+        );
 
         // need splash image to focus on it after webView reloads so keyboard doesn't auto popup
         splashImage = findViewById(R.id.splashImage);
@@ -431,6 +464,13 @@ public class NoteWidgetConfigureActivity extends Activity {
             });
         }
 
+        // returns Android strings to webView
+        @JavascriptInterface
+        // can't be null anyways
+        public String getAndroidString(String stringVariable) {
+            return getResources().getString(STRING_INTEGERS.get(stringVariable));
+        }
+
         // create a new note widget from the data we get from the webView
         @JavascriptInterface
         public void createNoteWidget(String noteDataJSON) { // TODO: NEED TO IMPLEMENT ME!!!
@@ -441,7 +481,7 @@ public class NoteWidgetConfigureActivity extends Activity {
                     final Context context = NoteWidgetConfigureActivity.this;
 
                     // When the note is clicked, store the json string locally
-                    saveNotePref(context, mAppWidgetId, noteDataJSON);
+                    saveNotePref(context, mAppWidgetId, noteDataJSON); // TODO: NEED TO SAVE NOTE ID TO WIDGET ID AND SAVE NOTE DATA IN NOTE ID
 
                     // It is the responsibility of the configuration activity to update the app widget
                     AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
